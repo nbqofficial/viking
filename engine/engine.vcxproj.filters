@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{55cbd3bc-bc1d-4cc5-9baf-94897b4879c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\defs">
+      <UniqueIdentifier>{a0fd0522-e819-40a9-927b-c8be360d6db8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\helper">
+      <UniqueIdentifier>{03db23b4-e1a9-4d90-8a85-d170dfd1da62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\bitwise">
+      <UniqueIdentifier>{bd19e0e8-127d-4e37-9449-a6d70fd84326}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\board">
+      <UniqueIdentifier>{96d2f7b1-1f6e-4d79-93b1-2483b8962802}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\helper\helper.cpp">
+      <Filter>src\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bitwise\bitwise.cpp">
+      <Filter>src\bitwise</Filter>
+    </ClCompile>
+    <ClCompile Include="src\board\board.cpp">
+      <Filter>src\board</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\defs\definitions.h">
+      <Filter>src\defs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\helper\helper.h">
+      <Filter>src\helper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bitwise\bitwise.h">
+      <Filter>src\bitwise</Filter>
+    </ClInclude>
+    <ClInclude Include="src\board\board.h">
+      <Filter>src\board</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
