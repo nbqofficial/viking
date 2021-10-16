@@ -30,6 +30,7 @@
     <ClCompile Include="src\board\board.cpp">
       <Filter>src\board</Filter>
     </ClCompile>
+    <ClCompile Include="src\perft\perft.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -44,5 +45,6 @@
     <ClInclude Include="src\board\board.h">
       <Filter>src\board</Filter>
     </ClInclude>
+    <ClInclude Include="src\perft\perft.h" />
   </ItemGroup>
 </Project>
