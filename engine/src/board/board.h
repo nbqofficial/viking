@@ -24,7 +24,11 @@ class board
 
 		bool reset();
 
-		bool init(const std::string& fen, const bool& display_fen);
+		bool init(const std::string& fen);
 
 		void display();
+
+		uint64_t hv_rays(const uint8_t& square);
+
+		uint64_t da_rays(const uint8_t& square);
 };

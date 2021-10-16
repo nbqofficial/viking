@@ -22,10 +22,8 @@ bool board::reset()
 	return true;
 }
 
-bool board::init(const std::string& fen, const bool& display_fen)
+bool board::init(const std::string& fen)
 {
-	if (display_fen) { printf("FEN: %s\n", fen.c_str()); }
-
 	this->reset();
 
 	uint16_t i = 0;
@@ -168,11 +166,12 @@ bool board::init(const std::string& fen, const bool& display_fen)
 void board::display()
 {
 	printf("\n\n");
+	printf("      **********************\n");
 	for (uint8_t r = 0; r < 8; ++r)
 	{
 		for (uint8_t f = 0; f < 8; ++f)
 		{
-			if (!f) { printf("  %d  ", 8 - r); }
+			if (!f) { printf("\t%d  ", 8 - r); }
 			
 			int8_t piece = -1;
 			uint8_t square = helper::rank_and_file_to_square(r, f);
@@ -189,19 +188,31 @@ void board::display()
 		}
 		printf("\n");
 	}
-	printf("\n     a b c d e f g h\n\n");
+	printf("\n\t   a b c d e f g h\n\n");
 
-	printf("     Side: %s\n", !this->side ? "white" : "black");
+	printf("\tside:        %s\n", !this->side ? "white" : "black");
 
-	printf("     Castling: %c%c%c%c\n", (this->castling & white_oo) ? 'K' : '-',
-								   (this->castling & white_ooo) ? 'Q' : '-', 
-								   (this->castling & black_oo) ? 'k' : '-', 
-								   (this->castling & black_ooo) ? 'q' : '-');
+	printf("\tcastling:     %c%c%c%c\n", (this->castling & white_oo) ? 'K' : '-',
+									   (this->castling & white_ooo) ? 'Q' : '-', 
+							           (this->castling & black_oo) ? 'k' : '-', 
+							           (this->castling & black_ooo) ? 'q' : '-');
 
-	printf("     Enpassant: %s\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "-");
+	printf("\tenpassant:      %s\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "--");
+	printf("      **********************\n\n");
+}
 
-	printf("     Fifty Moves: %d\n", this->fifty_move);
-	printf("     Ply: %d\n", this->ply);
-	printf("     Hashkey: %llu\n", this->hashkey);
-	printf("     History Size: %llu\n", this->history.size());
+uint64_t board::hv_rays(const uint8_t& square)
+{
+	uint64_t bin = 1ULL << square;
+	uint64_t hor = (this->occupied[both] - 2 * bin) ^ bitwise::reverse(bitwise::reverse(this->occupied[both]) - 2 * bitwise::reverse(bin));
+	uint64_t ver = ((this->occupied[both] & file_masks[square % 8]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & file_masks[square % 8]) - (2 * bitwise::reverse(bin)));
+	return (hor & rank_masks[square / 8]) | (ver & file_masks[square % 8]);
+}
+
+uint64_t board::da_rays(const uint8_t& square)
+{
+	uint64_t bin = 1ULL << square;
+	uint64_t diag = ((this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bitwise::reverse(bin)));
+	uint64_t antidiag = ((this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bitwise::reverse(bin)));
+	return (diag & diag_masks[(square / 8) + (square % 8)]) | (antidiag & antidiag_masks[(square / 8) + 7 - (square % 8)]);
 }
