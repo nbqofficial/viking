@@ -262,8 +262,8 @@ void board::display_move(const uint32_t& move)
 	uint8_t mvvlva = get_move_mvvlva(move);
 
 	printf("\t%s%s%c", square_to_coords[from],
-				         square_to_coords[to],
-						 promoted_piece ? tolower(pieces_to_ascii[promoted_piece]) : ' ');
+				       square_to_coords[to],
+					   promoted_piece ? tolower(pieces_to_ascii[promoted_piece]) : ' ');
 
 	printf("   %c", pieces_to_ascii[piece]);
 	printf("     %c", promoted_piece ? pieces_to_ascii[promoted_piece] : '-');
@@ -777,5 +777,51 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort)
 			}
 		}
 	}
+
+	if (sort)
+	{
+		if (sort) { std::sort(moves.begin(), moves.end(), [](const uint32_t& a, const uint32_t& b) { return ((a & 0x3f000000) >> 24) > ((b & 0x3f000000) >> 24); }); }
+	}
+}
+
+void board::save_history()
+{
+	board_undo undo = { 0 };
+	memcpy(undo.state, this->state, sizeof(this->state));
+	memcpy(undo.occupied, this->occupied, sizeof(this->occupied));
+	undo.side = this->side;
+	undo.castling = this->castling;
+	undo.enpassant = this->enpassant;
+	undo.fifty_move = this->fifty_move;
+	undo.hashkey = this->hashkey;
+
+	this->history.push_back(undo);
+	this->ply++;
+}
+
+bool board::make_move(uint32_t move, const uint8_t& type)
+{
+	
+}
+
+bool board::undo_move()
+{
+	if (this->history.size() > 0)
+	{
+		board_undo undo = this->history[this->history.size() - 1];
+		memcpy(this->state, undo.state, sizeof(this->state));
+		memcpy(this->occupied, undo.occupied, sizeof(this->occupied));
+		this->side = undo.side;
+		this->castling = undo.castling;
+		this->enpassant = undo.enpassant;
+		this->fifty_move = undo.fifty_move;
+		this->hashkey = undo.hashkey;
+
+		this->history.pop_back();
+		this->ply--;
+
+		return true;
+	}
+	return false;
 }
 

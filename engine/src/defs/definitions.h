@@ -58,6 +58,11 @@ enum castle : uint8_t
     white_oo = 1, white_ooo = 2, black_oo = 4, black_ooo = 8
 };
 
+enum movegen : uint8_t
+{
+    all_moves, only_captures
+};
+
 
 static const char* square_to_coords[] ={
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
@@ -160,8 +165,19 @@ static const uint8_t mvvlva[6][5] = {
     { 10, 20, 30, 40, 50}
 };
 
+static const uint8_t castling_rights[] = {
+     7, 15, 15, 15,  3, 15, 15, 11,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    13, 15, 15, 15, 12, 15, 15, 14 };
 
-// move representation
+
+// move representation in binary                var                 hex
+
 // 0000 0000 0000 0000 0000 0000 0011 1111      from                0x3f
 // 0000 0000 0000 0000 0000 1111 1100 0000      to                  0xfc0
 // 0000 0000 0000 0000 1111 0000 0000 0000      piece               0xf000
@@ -170,4 +186,4 @@ static const uint8_t mvvlva[6][5] = {
 // 0000 0000 0010 0000 0000 0000 0000 0000      double push flag    0x200000
 // 0000 0000 0100 0000 0000 0000 0000 0000      enpassant flag      0x400000
 // 0000 0000 1000 0000 0000 0000 0000 0000      castling flag       0x800000
-// 0011 1111 0000 0000 0000 0000 0000 0000      mvvlva score        0x3f000000 (mvvlva 0 - 63)
+// 0011 1111 0000 0000 0000 0000 0000 0000      mvvlva score        0x3f000000
