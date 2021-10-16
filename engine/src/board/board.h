@@ -52,11 +52,15 @@ class board
 
 		void display_moves(const std::vector<uint32_t>& moves);
 
+		void display_pv(const std::vector<uint32_t>& moves, const int& depth);
+
 		uint64_t rook_attacks(const uint8_t& square);
 
 		uint64_t bishop_attacks(const uint8_t& square);
 
 		bool is_square_attacked(const uint8_t& square, const uint8_t& by_who);
+
+		bool is_in_check();
 
 		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
 
@@ -69,4 +73,6 @@ class board
 		bool make_move(const uint32_t& move);
 
 		bool undo_move();
+
+		int evaluate();
 };

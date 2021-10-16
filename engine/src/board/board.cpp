@@ -165,12 +165,12 @@ bool board::init(const std::string& fen)
 
 void board::display()
 {
-	printf("\n\n");
+	printf("\n");
 	for (uint8_t r = 0; r < 8; ++r)
 	{
 		for (uint8_t f = 0; f < 8; ++f)
 		{
-			if (!f) { printf("\t\t\t\t%d  ", 8 - r); }
+			if (!f) { printf("\t%d  ", 8 - r); }
 			
 			int8_t piece = -1;
 			uint8_t square = helper::rank_and_file_to_square(r, f);
@@ -187,16 +187,16 @@ void board::display()
 		}
 		printf("\n");
 	}
-	printf("\n\t\t\t\t   a b c d e f g h\n\n");
+	printf("\n\t   a b c d e f g h\n\n");
 
-	printf("\t\t\t\tside:        %s\n", !this->side ? "white" : "black");
+	printf("\tside:        %s\n", !this->side ? "white" : "black");
 
-	printf("\t\t\t\tcastling:     %c%c%c%c\n", (this->castling & white_oo) ? 'K' : '-',
+	printf("\tcastling:     %c%c%c%c\n", (this->castling & white_oo) ? 'K' : '-',
 									     (this->castling & white_ooo) ? 'Q' : '-', 
 							             (this->castling & black_oo) ? 'k' : '-', 
 							             (this->castling & black_ooo) ? 'q' : '-');
 
-	printf("\t\t\t\tenpassant:      %s\n\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "--");
+	printf("\tenpassant:      %s\n\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "--");
 }
 
 uint32_t board::encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& mvvlva)
@@ -284,6 +284,21 @@ void board::display_moves(const std::vector<uint32_t>& moves)
 	printf("\n\ttotal moves: %llu\n", moves.size());
 }
 
+void board::display_pv(const std::vector<uint32_t>& moves, const int& depth)
+{
+	printf("\t%d     ", depth);
+	for (int i = 0; i < moves.size(); ++i)
+	{
+		uint8_t from = get_move_from(moves[i]);
+		uint8_t to = get_move_to(moves[i]);
+		uint8_t promoted_piece = get_move_promoted_piece(moves[i]);
+		printf("\t%s%s%c ", square_to_coords[from],
+						   square_to_coords[to],
+						   promoted_piece ? tolower(pieces_to_ascii[promoted_piece]) : '\0');
+	}
+	printf("\n");
+}
+
 uint64_t board::rook_attacks(const uint8_t& square)
 {
 	uint64_t bin = 1ULL << square;
@@ -312,6 +327,16 @@ bool board::is_square_attacked(const uint8_t& square, const uint8_t& by_who)
 
 	if (king_attacks[square] & this->state[side_to_piece_type[by_who][K]]) { return true; }
 
+	return false;
+}
+
+bool board::is_in_check()
+{
+	uint64_t kbb = this->state[side_to_piece_type[this->side][K]];
+	if (is_square_attacked(bitwise::lsb(kbb), this->side))
+	{
+		return true;
+	}
 	return false;
 }
 
@@ -985,5 +1010,19 @@ bool board::undo_move()
 		return true;
 	}
 	return false;
+}
+
+int board::evaluate()
+{
+	int score = 0;
+
+	for (int i = P; i <= k; ++i)
+	{
+		uint64_t bitboard = this->state[i];
+		uint8_t count = bitwise::count(bitboard);
+		score += (piece_values[i] * count);
+	}
+
+	return (!this->side ? score : -score);
 }
 

@@ -17,7 +17,11 @@
 #define f6_enpassant_test "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3"	        // f6 is en passant square
 #define pawn_test "rnbqkb1r/p1p3P1/5n1p/1p1pp3/2PP1P2/8/PP4PP/RNBQKBNR w KQkq - 0 8"                // pawn captures, promotions, moves
 #define wac1 "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - 0 1"				            // Qg6
-
+#define MAX_INPUT_BUFFER 400*6
+#define INF_SCORE 900000
+#define MATE_SCORE 300000
+#define PROBABILITY_LIMIT 0.00000001
+#define MAX_PROBABILITY 1000000.0
 
 typedef struct _board_undo
 {
@@ -29,6 +33,21 @@ typedef struct _board_undo
     uint8_t fifty_move;
     uint64_t hashkey;
 }board_undo, *pboard_undo;
+
+typedef struct _search_info
+{
+    int starttime;
+    int stoptime;
+    int depth;
+    double probability;
+    bool timeset;
+    bool infinite;
+    bool quit;
+    bool stopped;
+    float fh;
+    float fhf;
+    int null_cutoff;
+}search_info, *psearch_info;
 
 
 enum squares : uint8_t
@@ -174,6 +193,11 @@ static const uint8_t castling_rights[] = {
     15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15,
     13, 15, 15, 15, 12, 15, 15, 14 };
+
+static const int piece_values[] = {
+    100, 300, 325, 500, 900, 10000,
+    -100, -300, -325, -500, -900, -10000
+};
 
 
 // move representation in binary                var                 hex

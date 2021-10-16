@@ -16,6 +16,12 @@
     <Filter Include="src\board">
       <UniqueIdentifier>{96d2f7b1-1f6e-4d79-93b1-2483b8962802}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\perft">
+      <UniqueIdentifier>{d1dc796f-fc52-48e3-80d4-6eadfd17dc0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\search">
+      <UniqueIdentifier>{61dfd7bc-0e50-4c42-b129-3775465adf29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -30,7 +36,12 @@
     <ClCompile Include="src\board\board.cpp">
       <Filter>src\board</Filter>
     </ClCompile>
-    <ClCompile Include="src\perft\perft.cpp" />
+    <ClCompile Include="src\perft\perft.cpp">
+      <Filter>src\perft</Filter>
+    </ClCompile>
+    <ClCompile Include="src\search\search.cpp">
+      <Filter>src\search</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -45,6 +56,11 @@
     <ClInclude Include="src\board\board.h">
       <Filter>src\board</Filter>
     </ClInclude>
-    <ClInclude Include="src\perft\perft.h" />
+    <ClInclude Include="src\perft\perft.h">
+      <Filter>src\perft</Filter>
+    </ClInclude>
+    <ClInclude Include="src\search\search.h">
+      <Filter>src\search</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
