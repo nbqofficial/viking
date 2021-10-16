@@ -199,17 +199,9 @@ void board::display()
 	printf("\t\t\t\tenpassant:      %s\n\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "--");
 }
 
-void board::encode_move(uint32_t& move, const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& mvvlva)
+uint32_t board::encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& mvvlva)
 {
-	move |= (from);
-	move |= (to << 6);
-	move |= (piece << 12);
-	move |= (promoted_piece << 16);
-	move |= (capture_flag << 20);
-	move |= (double_push_flag << 21);
-	move |= (enpassant_flag << 22);
-	move |= (castling_flag << 23);
-	move |= (mvvlva << 24);
+	return ((from) | (to << 6) | (piece << 12) | (promoted_piece << 16) | (capture_flag << 20) | (double_push_flag << 21) | (enpassant_flag << 22) | (castling_flag << 23) | (mvvlva << 24));
 }
 
 uint8_t board::get_move_from(const uint32_t& move)
@@ -282,13 +274,14 @@ void board::display_move(const uint32_t& move)
 	printf("        %d\n", mvvlva);
 }
 
-void board::display_moves(const std::vector<uint32_t>& move_list)
+void board::display_moves(const std::vector<uint32_t>& moves)
 {
 	printf("\tmove    piece promoted capture doublepush enpassant castling mvvlva\n\n");
-	for (int i = 0; i < move_list.size(); ++i)
+	for (int i = 0; i < moves.size(); ++i)
 	{
-		display_move(move_list[i]);
+		display_move(moves[i]);
 	}
+	printf("\n\ttotal moves: %llu\n", moves.size());
 }
 
 uint64_t board::rook_attacks(const uint8_t& square)
@@ -320,5 +313,469 @@ bool board::is_square_attacked(const uint8_t& square, const uint8_t& by_who)
 	if (king_attacks[square] & this->state[side_to_piece_type[by_who][K]]) { return true; }
 
 	return false;
+}
+
+uint8_t board::get_piece_mvvlva(const uint8_t& piece, const uint8_t& square)
+{
+	for (uint8_t i = P; i < K; ++i)
+	{
+		uint64_t bitboard = this->state[side_to_piece_type[!this->side][i]];
+
+		if (bitwise::check(bitboard, square)) { return mvvlva[piece][i]; }
+	}
+	return 0;
+}
+
+void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort)
+{
+	uint8_t from_square = 0;
+	uint8_t to_square = 0;
+	uint64_t bitboard = 0ULL;
+	uint64_t attacks = 0ULL;
+
+	if (this->side == white)
+	{
+		for (uint8_t piece = P; piece <= K; ++piece)
+		{
+			bitboard = this->state[piece];
+
+			if (piece == P)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+					to_square = from_square - 8;
+
+					if (!(to_square < a8) && !bitwise::check(this->occupied[both], to_square))
+					{
+						if (from_square >= a7 && from_square <= h7)
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, Q, 0, 0, 0, 0, mvvlva[K][P]));
+							moves.push_back(encode_move(from_square, to_square, piece, R, 0, 0, 0, 0, mvvlva[K][P]));
+							moves.push_back(encode_move(from_square, to_square, piece, B, 0, 0, 0, 0, mvvlva[K][P]));
+							moves.push_back(encode_move(from_square, to_square, piece, N, 0, 0, 0, 0, mvvlva[K][P]));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						
+							if ((from_square >= a2 && from_square <= h2) && !bitwise::check(this->occupied[both], to_square - 8))
+							{
+								moves.push_back(encode_move(from_square, to_square - 8, piece, 0, 0, 1, 0, 0, 0));
+							}
+						}
+					}
+			
+					attacks = pawn_attacks[white][from_square] & this->occupied[black];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (from_square >= a7 && from_square <= h7)
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, Q, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+							moves.push_back(encode_move(from_square, to_square, piece, R, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+							moves.push_back(encode_move(from_square, to_square, piece, B, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+							moves.push_back(encode_move(from_square, to_square, piece, N, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					if (this->enpassant != no_sq)
+					{
+						uint64_t ep_attacks = pawn_attacks[white][from_square] & (1ULL << this->enpassant);
+
+						if (ep_attacks)
+						{
+							uint8_t target_ep = bitwise::lsb(ep_attacks);
+							moves.push_back(encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, mvvlva[P][P]));
+						}
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == N)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = knight_attacks[from_square] & ~this->occupied[white];
+				
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[black], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(N, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == B)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = bishop_attacks(from_square) & ~this->occupied[white];
+				
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[black], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(B, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == R)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = rook_attacks(from_square) & ~this->occupied[white];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[black], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(R, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == Q)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = rook_attacks(from_square) | bishop_attacks(from_square);
+					attacks &= ~this->occupied[white];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[black], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(Q, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == K)
+			{
+				if (this->castling & white_oo)
+				{
+					if (!bitwise::check(this->occupied[both], f1) && !bitwise::check(this->occupied[both], g1))
+					{
+						if (!is_square_attacked(e1, black) && !is_square_attacked(f1, black))
+						{
+							moves.push_back(encode_move(e1, g1, piece, 0, 0, 0, 0, 1, 0));
+						}
+					}
+				}
+
+				if (this->castling & white_ooo)
+				{
+					if (!bitwise::check(this->occupied[both], d1) && !bitwise::check(this->occupied[both], c1) && !bitwise::check(this->occupied[both], b1))
+					{
+						if (!is_square_attacked(e1, black) && !is_square_attacked(d1, black))
+						{
+							moves.push_back(encode_move(e1, c1, piece, 0, 0, 0, 0, 1, 0));
+						}
+					}
+				}
+
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = king_attacks[from_square] & ~this->occupied[white];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[black], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(K, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+		}
+	}
+	else
+	{
+		for (uint8_t piece = p; piece <= k; ++piece)
+		{
+			bitboard = this->state[piece];
+
+			if (piece == p)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+					to_square = from_square + 8;
+
+					if (!(to_square > h1) && !bitwise::check(this->occupied[both], to_square))
+					{
+						if (from_square >= a2 && from_square <= h2)
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, q, 0, 0, 0, 0, mvvlva[K][P]));
+							moves.push_back(encode_move(from_square, to_square, piece, r, 0, 0, 0, 0, mvvlva[K][P]));
+							moves.push_back(encode_move(from_square, to_square, piece, b, 0, 0, 0, 0, mvvlva[K][P]));
+							moves.push_back(encode_move(from_square, to_square, piece, n, 0, 0, 0, 0, mvvlva[K][P]));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+
+							if ((from_square >= a7 && from_square <= h7) && !bitwise::check(this->occupied[both], to_square + 8))
+							{
+								moves.push_back(encode_move(from_square, to_square + 8, piece, 0, 0, 1, 0, 0, 0));
+							}
+						}
+					}
+
+					attacks = pawn_attacks[black][from_square] & this->occupied[white];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (from_square >= a2 && from_square <= h2)
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, q, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+							moves.push_back(encode_move(from_square, to_square, piece, r, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+							moves.push_back(encode_move(from_square, to_square, piece, b, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+							moves.push_back(encode_move(from_square, to_square, piece, n, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(P, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					if (this->enpassant != no_sq)
+					{
+						uint64_t ep_attacks = pawn_attacks[black][from_square] & (1ULL << this->enpassant);
+
+						if (ep_attacks)
+						{
+							uint8_t target_ep = bitwise::lsb(ep_attacks);
+							moves.push_back(encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, mvvlva[P][P]));
+						}
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == n)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = knight_attacks[from_square] & ~this->occupied[black];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[white], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(N, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == b)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = bishop_attacks(from_square) & ~this->occupied[black];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[white], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(B, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == r)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = rook_attacks(from_square) & ~this->occupied[black];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[white], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(R, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == q)
+			{
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = rook_attacks(from_square) | bishop_attacks(from_square);
+					attacks &= ~this->occupied[black];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[white], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(Q, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+			else if (piece == k)
+			{
+				if (this->castling & black_oo)
+				{
+					if (!bitwise::check(this->occupied[both], f8) && !bitwise::check(this->occupied[both], g8))
+					{
+						if (!is_square_attacked(e8, white) && !is_square_attacked(f8, white))
+						{
+							moves.push_back(encode_move(e8, g8, piece, 0, 0, 0, 0, 1, 0));
+						}
+					}
+				}
+
+				if (this->castling & black_ooo)
+				{
+					if (!bitwise::check(this->occupied[both], d8) && !bitwise::check(this->occupied[both], c8) && !bitwise::check(this->occupied[both], b8))
+					{
+						if (!is_square_attacked(e8, white) && !is_square_attacked(d8, white))
+						{
+							moves.push_back(encode_move(e8, c8, piece, 0, 0, 0, 0, 1, 0));
+						}
+					}
+				}
+
+				while (bitboard)
+				{
+					from_square = bitwise::lsb(bitboard);
+
+					attacks = king_attacks[from_square] & ~this->occupied[black];
+
+					while (attacks)
+					{
+						to_square = bitwise::lsb(attacks);
+
+						if (!bitwise::check(this->occupied[white], to_square))
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
+						}
+						else
+						{
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(K, to_square)));
+						}
+						bitwise::clear(attacks, to_square);
+					}
+
+					bitwise::clear(bitboard, from_square);
+				}
+			}
+		}
+	}
 }
 

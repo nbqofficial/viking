@@ -11,6 +11,7 @@
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
 #define queen_h5_opening "r1bqkbnr/pppp1ppp/2n5/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR w KQkq - 2 3"          // e4 e5 Qh5 Nc6
+#define scandinavian_defense "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"         // e4 d5 scandi
 #define ruy_lopez "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 5 4"              // ruy lopez berlin defence castles
 #define italian_fried_liver "r1bqkb1r/ppp2ppp/2n2n2/3pp1N1/2B1P3/8/PPPP1PPP/RNBQK2R w KQkq - 0 5"   // italian game fried liver attack
 #define f6_enpassant_test "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3"	        // f6 is en passant square
@@ -148,6 +149,15 @@ static const uint64_t pawn_attacks[2][64] = {
       562949953421312, 1407374883553280, 2814749767106560, 5629499534213120, 11258999068426240, 22517998136852480, 
       45035996273704960, 18014398509481984, 144115188075855872, 360287970189639680, 720575940379279360, 1441151880758558720, 
       2882303761517117440, 5764607523034234880, 11529215046068469760, 4611686018427387904, 0, 0, 0, 0, 0, 0, 0, 0, }
+};
+
+static const uint8_t mvvlva[6][5] = {
+    { 15, 25, 35, 45, 55 },
+    { 14, 24, 34, 44, 54 },
+    { 13, 23, 33, 43, 53 },
+    { 12, 22, 32, 42, 52 },
+    { 11, 21, 31, 41, 51 },
+    { 10, 20, 30, 40, 50}
 };
 
 
