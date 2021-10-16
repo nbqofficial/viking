@@ -60,11 +60,13 @@ class board
 
 		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
 
-		void generate_moves(std::vector<uint32_t>& moves, const bool& sort);
+		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type);
+
+		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves);
 
 		void save_history();
 
-		bool make_move(uint32_t move, const uint8_t& type);
+		bool make_move(const uint32_t& move);
 
 		bool undo_move();
 };
