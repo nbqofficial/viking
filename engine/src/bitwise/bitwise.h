@@ -21,4 +21,6 @@ namespace bitwise
 	uint64_t reverse(uint64_t bitboard);
 
 	void display(const uint64_t& bitboard);
+	
+	void display_binary_move(const uint32_t& binary_move);
 }

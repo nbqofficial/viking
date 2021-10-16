@@ -9,6 +9,8 @@
 
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
+#define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
+#define queen_h5_opening "r1bqkbnr/pppp1ppp/2n5/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR w KQkq - 2 3"          // e4 e5 Qh5 Nc6
 #define ruy_lopez "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 5 4"              // ruy lopez berlin defence castles
 #define italian_fried_liver "r1bqkb1r/ppp2ppp/2n2n2/3pp1N1/2B1P3/8/PPPP1PPP/RNBQK2R w KQkq - 0 5"   // italian game fried liver attack
 #define f6_enpassant_test "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3"	        // f6 is en passant square
@@ -68,6 +70,9 @@ static const char* square_to_coords[] ={
 };
 
 static const char* pieces_to_ascii = "PNBRQKpnbrqk";
+
+static const uint8_t side_to_piece_type[2][6] = {
+    { P, N, B, R, Q, K }, { p, n, b, r, q, k } };
 
 static const uint64_t file_a = 72340172838076673L;
 
@@ -144,3 +149,15 @@ static const uint64_t pawn_attacks[2][64] = {
       45035996273704960, 18014398509481984, 144115188075855872, 360287970189639680, 720575940379279360, 1441151880758558720, 
       2882303761517117440, 5764607523034234880, 11529215046068469760, 4611686018427387904, 0, 0, 0, 0, 0, 0, 0, 0, }
 };
+
+
+// move representation
+// 0000 0000 0000 0000 0000 0000 0011 1111      from                0x3f
+// 0000 0000 0000 0000 0000 1111 1100 0000      to                  0xfc0
+// 0000 0000 0000 0000 1111 0000 0000 0000      piece               0xf000
+// 0000 0000 0000 1111 0000 0000 0000 0000      promoted piece      0xf0000
+// 0000 0000 0001 0000 0000 0000 0000 0000      capture flag        0x100000
+// 0000 0000 0010 0000 0000 0000 0000 0000      double push flag    0x200000
+// 0000 0000 0100 0000 0000 0000 0000 0000      enpassant flag      0x400000
+// 0000 0000 1000 0000 0000 0000 0000 0000      castling flag       0x800000
+// 0011 1111 0000 0000 0000 0000 0000 0000      mvvlva score        0x3f000000 (mvvlva 0 - 63)

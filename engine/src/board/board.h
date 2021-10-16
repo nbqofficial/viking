@@ -28,7 +28,36 @@ class board
 
 		void display();
 
-		uint64_t hv_rays(const uint8_t& square);
+		void encode_move(uint32_t& move, const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& mvvlva);
 
-		uint64_t da_rays(const uint8_t& square);
+		uint8_t get_move_from(const uint32_t& move);
+
+		uint8_t get_move_to(const uint32_t& move);
+
+		uint8_t get_move_piece(const uint32_t& move);
+
+		uint8_t get_move_promoted_piece(const uint32_t& move);
+
+		uint8_t get_move_capture_flag(const uint32_t& move);
+
+		uint8_t get_move_double_push_flag(const uint32_t& move);
+
+		uint8_t get_move_enpassant_flag(const uint32_t& move);
+
+		uint8_t get_move_castling_flag(const uint32_t& move);
+
+		uint8_t get_move_mvvlva(const uint32_t& move);
+
+		void display_move(const uint32_t& move);
+
+		void display_moves(const std::vector<uint32_t>& move_list);
+
+		uint64_t rook_attacks(const uint8_t& square);
+
+		uint64_t bishop_attacks(const uint8_t& square);
+
+		bool is_square_attacked(const uint8_t& square, const uint8_t& by_who);
+
+
+
 };
