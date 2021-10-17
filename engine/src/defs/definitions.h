@@ -187,6 +187,8 @@ static const int MATE_SCORE = 300000;
 
 static const int MAX_DEPTH = 64;
 
+static const double PROBABILITY_LIMIT = 0.00000001;
+
 static const uint64_t state_hashkey[12][64] = {
     { 
     0x9904662fb3c24ae1, 0xc59adcabb4a95f90, 0x9dbe36bc60dda6e9, 0xb1766ba9896d953c, 0x772183cf804c8124, 0xe881b24726834db7, 0x7a9bce6cd689074d, 0x8c8879aee145a6a6,
