@@ -61,9 +61,13 @@ class board
 
 		bool is_in_check();
 
-		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
+		bool is_repetition();
 
-		uint8_t get_piece_score(const uint8_t& piece, const uint8_t& from, const uint8_t& to, const bool& is_capture);
+		uint8_t get_fifty_move();
+
+		void generate_hashkey();
+
+		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
 
 		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type);
 

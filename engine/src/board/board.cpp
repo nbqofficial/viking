@@ -161,6 +161,8 @@ bool board::init(const std::string& fen, const bool& display_fen)
 	this->occupied[both] |= this->occupied[white];
 	this->occupied[both] |= this->occupied[black];
 
+	generate_hashkey();
+
 	return true;
 }
 
@@ -197,7 +199,10 @@ void board::display()
 							             (this->castling & black_oo) ? 'k' : '-', 
 							             (this->castling & black_ooo) ? 'q' : '-');
 
-	printf("\tenpassant:      %s\n\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "--");
+	printf("\tenpassant:      %s\n", (this->enpassant != no_sq) ? square_to_coords[this->enpassant] : "--");
+	printf("\tfifty moves:\t%d\n", this->fifty_move);
+	printf("\thistory:\t%d\n", this->history.size());
+	printf("\t %llx\n\n", this->hashkey);
 }
 
 uint32_t board::encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& score)
@@ -334,12 +339,39 @@ bool board::is_square_attacked(const uint8_t& square, const uint8_t& by_who)
 
 bool board::is_in_check()
 {
-	uint64_t kbb = this->state[side_to_piece_type[this->side][K]];
-	if (is_square_attacked(bitwise::lsb(kbb), this->side))
+	if (this->side == white)
 	{
-		return true;
+		uint64_t kbb = this->state[K];
+		return is_square_attacked(bitwise::lsb(kbb), black);
+	}
+	else
+	{
+		uint64_t kbb = this->state[k];
+		return is_square_attacked(bitwise::lsb(kbb), white);
 	}
 	return false;
+}
+
+bool board::is_repetition()
+{
+	for (int i = this->history.size() - this->fifty_move; i < this->history.size(); ++i)
+	{
+		if (this->history[i].hashkey == this->hashkey) { return true; }
+	}
+	return false;
+}
+
+uint8_t board::get_fifty_move()
+{
+	return this->fifty_move;
+}
+
+void board::generate_hashkey()
+{
+	this->hashkey = 0ULL;	
+	for (uint8_t i = P; i <= k; ++i) { this->hashkey ^= this->state[i]; }
+	this->hashkey ^= castling_hashkey[this->castling];
+	this->hashkey ^= side_hashkey[this->side];
 }
 
 uint8_t board::get_piece_mvvlva(const uint8_t& piece, const uint8_t& square)
@@ -351,53 +383,6 @@ uint8_t board::get_piece_mvvlva(const uint8_t& piece, const uint8_t& square)
 		if (bitwise::check(bitboard, square)) { return mvvlva[piece][i]; }
 	}
 	return 0;
-}
-
-uint8_t board::get_piece_score(const uint8_t& piece, const uint8_t& from, const uint8_t& to, const bool& is_capture)
-{
-	uint8_t score = 0;
-	uint64_t mobility_from = 0ULL;
-	uint64_t mobility_to = 0ULL;
-	int diff = 0;
-
-	if (is_capture)
-	{
-		score = get_piece_mvvlva(piece, to);
-	}
-	else
-	{
-		switch (piece)
-		{
-			case N: 
-				mobility_from = knight_attacks[from] & ~this->occupied[this->side];
-				mobility_to = knight_attacks[to] & ~this->occupied[this->side];
-				diff = bitwise::count(mobility_to) - bitwise::count(mobility_from);
-				score = (diff < 0) ? 0 : diff;
-				break;
-			case B: 
-				mobility_from = bishop_attacks(from) & ~this->occupied[this->side];
-				mobility_to = bishop_attacks(to) & ~this->occupied[this->side];
-				diff = bitwise::count(mobility_to) - bitwise::count(mobility_from);
-				score = (diff < 0) ? 0 : diff;
-				break;
-			case R:
-				mobility_from = rook_attacks(from) & ~this->occupied[this->side];
-				mobility_to = rook_attacks(to) & ~this->occupied[this->side];
-				diff = bitwise::count(mobility_to) - bitwise::count(mobility_from);
-				score = (diff < 0) ? 0 : diff;
-				break;
-			case Q: 
-				mobility_from = rook_attacks(from) | bishop_attacks(from);
-				mobility_from &= ~this->occupied[this->side];
-				mobility_to = rook_attacks(to) | bishop_attacks(to);
-				mobility_to &= ~this->occupied[this->side];
-				diff = bitwise::count(mobility_to) - bitwise::count(mobility_from);
-				score = (diff < 0) ? 0 : diff;
-				break;
-		}
-	}
-
-	return score;
 }
 
 void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type)
@@ -493,12 +478,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(N, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(N, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(N, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -522,12 +507,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(B, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(B, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(B, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -551,12 +536,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(R, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(R, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(R, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -581,12 +566,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(Q, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(Q, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(Q, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -736,12 +721,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(N, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(N, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(N, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -765,12 +750,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(B, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(B, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(B, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -794,12 +779,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(R, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(R, from_square, to_square, false)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(R, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -824,12 +809,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(Q, from_square, to_square, false)));
+								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 							}
 						}
 						else
 						{
-							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(Q, from_square, to_square, true)));
+							moves.push_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_mvvlva(Q, to_square)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -979,6 +964,8 @@ bool board::pop_history()
 
 bool board::make_move(const uint32_t& move, const bool& save_to_history)
 {
+	fifty_move++;
+
 	if (save_to_history) { push_history(); }
 
 	this->enpassant = no_sq;
@@ -992,11 +979,14 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 	uint8_t enpassant_flag = get_move_enpassant_flag(move);
 	uint8_t castling_flag = get_move_castling_flag(move);
 
+	if (piece == P || piece == p) { this->fifty_move = 0; }
+
 	bitwise::clear(this->state[piece], from);
 	bitwise::set(this->state[piece], to);
 
 	if (capture_flag)
 	{
+		this->fifty_move = 0;
 		uint8_t start_piece = side_to_piece_type[!this->side][P];
 		uint8_t end_piece = side_to_piece_type[!this->side][K];
 
@@ -1042,6 +1032,7 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 
 	if (castling_flag)
 	{
+		this->fifty_move = 0;
 		switch (to)
 		{
 			case g1:
@@ -1076,6 +1067,8 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 	this->occupied[both] |= this->occupied[black];
 
 	this->side ^= 1;
+
+	generate_hashkey();
 
 	return true;
 }

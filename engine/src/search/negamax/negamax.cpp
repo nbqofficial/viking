@@ -4,6 +4,8 @@ int negamax::quiescence(board& b, int alpha, int beta)
 {
 	this->nodes++;
 
+	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
+
 	int score = b.evaluate();
 
 	if (score >= beta) { return beta; }
@@ -35,6 +37,10 @@ int negamax::quiescence(board& b, int alpha, int beta)
 int negamax::nmax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv)
 {
 	if (depth <= 0) { return quiescence(b, alpha, beta); }
+
+	this->nodes++;
+
+	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
 
 	bool inchk = b.is_in_check();
 
@@ -90,7 +96,11 @@ uint32_t negamax::go(board& b, const int& depth, const bool& display_pv, const b
 		best_move = newpv[0];
 		if (display_pv) { b.display_pv(newpv, current_depth); }
 
-		if (display_debug) { printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes); }
+		if (display_debug) 
+		{
+			printf("\tevaluation: %d\n", best_score);
+			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
+		}
 	}
 
 	this->nodes = 0;
