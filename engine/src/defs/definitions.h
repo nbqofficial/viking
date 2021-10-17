@@ -180,6 +180,12 @@ static const int piece_values[] = {
     -100, -300, -325, -500, -900, -10000
 };
 
+static const int INF_SCORE = 900000;
+
+static const int MATE_SCORE = 300000;
+
+static const int MAX_DEPTH = 64;
+
 
 // move representation in binary                var                 hex
 
@@ -191,4 +197,4 @@ static const int piece_values[] = {
 // 0000 0000 0010 0000 0000 0000 0000 0000      double push flag    0x200000
 // 0000 0000 0100 0000 0000 0000 0000 0000      enpassant flag      0x400000
 // 0000 0000 1000 0000 0000 0000 0000 0000      castling flag       0x800000
-// 0011 1111 0000 0000 0000 0000 0000 0000      score        0x3f000000
+// 0011 1111 0000 0000 0000 0000 0000 0000      score               0x3f000000

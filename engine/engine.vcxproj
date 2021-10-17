@@ -144,14 +144,18 @@
     <ClCompile Include="src\board\board.cpp" />
     <ClCompile Include="src\helper\helper.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\search\negamax\negamax.cpp" />
     <ClCompile Include="src\perft\perft.cpp" />
+    <ClCompile Include="src\search\search.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bitwise\bitwise.h" />
     <ClInclude Include="src\board\board.h" />
     <ClInclude Include="src\defs\definitions.h" />
     <ClInclude Include="src\helper\helper.h" />
+    <ClInclude Include="src\search\negamax\negamax.h" />
     <ClInclude Include="src\perft\perft.h" />
+    <ClInclude Include="src\search\search.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

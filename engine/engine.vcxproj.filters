@@ -19,6 +19,12 @@
     <Filter Include="src\perft">
       <UniqueIdentifier>{d1dc796f-fc52-48e3-80d4-6eadfd17dc0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\search">
+      <UniqueIdentifier>{3bdf0ab6-3a1a-4e39-8cd4-c5f1eadb5539}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\search\negamax">
+      <UniqueIdentifier>{3c4edfba-2bb6-4722-a03f-3a0b283c62f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -36,6 +42,12 @@
     <ClCompile Include="src\perft\perft.cpp">
       <Filter>src\perft</Filter>
     </ClCompile>
+    <ClCompile Include="src\search\negamax\negamax.cpp">
+      <Filter>src\search\negamax</Filter>
+    </ClCompile>
+    <ClCompile Include="src\search\search.cpp">
+      <Filter>src\search</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -52,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="src\perft\perft.h">
       <Filter>src\perft</Filter>
+    </ClInclude>
+    <ClInclude Include="src\search\negamax\negamax.h">
+      <Filter>src\search\negamax</Filter>
+    </ClInclude>
+    <ClInclude Include="src\search\search.h">
+      <Filter>src\search</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

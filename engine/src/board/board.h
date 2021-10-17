@@ -27,7 +27,7 @@ class board
 
 		void display();
 
-		uint32_t encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& mvvlva);
+		uint32_t encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& score);
 
 		uint8_t get_move_from(const uint32_t& move);
 
@@ -45,11 +45,13 @@ class board
 
 		uint8_t get_move_castling_flag(const uint32_t& move);
 
-		uint8_t get_move_mvvlva(const uint32_t& move);
+		uint8_t get_move_score(const uint32_t& move);
 
 		void display_move(const uint32_t& move);
 
 		void display_moves(const std::vector<uint32_t>& moves);
+
+		void display_pv(const std::vector<uint32_t>& pv, const int& depth);
 
 		uint64_t rook_attacks(const uint8_t& square);
 
@@ -60,6 +62,8 @@ class board
 		bool is_in_check();
 
 		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
+
+		uint8_t get_piece_score(const uint8_t& piece, const uint8_t& from, const uint8_t& to, const bool& is_capture);
 
 		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type);
 
@@ -74,4 +78,6 @@ class board
 		bool pop_history();
 
 		bool make_move(const uint32_t& move, const bool& save_to_history);
+
+		int evaluate();
 };
