@@ -16,14 +16,15 @@ bool board::reset()
 	this->castling = 0;
 	this->enpassant = no_sq;
 	this->fifty_move = 0;
-	this->ply = 0;
 	this->hashkey = 0;
 	this->history.clear();
 	return true;
 }
 
-bool board::init(const std::string& fen)
+bool board::init(const std::string& fen, const bool& display_fen)
 {
+	if (display_fen) { printf("\tfen: %s\n", fen.c_str()); }
+
 	reset();
 
 	uint16_t i = 0;
@@ -276,27 +277,12 @@ void board::display_move(const uint32_t& move)
 
 void board::display_moves(const std::vector<uint32_t>& moves)
 {
-	printf("\tmove    piece promoted capture doublepush enpassant castling mvvlva\n\n");
+	printf("\tmove    piece promoted capture doublepush enpassant castling score\n\n");
 	for (int i = 0; i < moves.size(); ++i)
 	{
 		display_move(moves[i]);
 	}
 	printf("\n\ttotal moves: %llu\n", moves.size());
-}
-
-void board::display_pv(const std::vector<uint32_t>& moves, const int& depth)
-{
-	printf("\t%d     ", depth);
-	for (int i = 0; i < moves.size(); ++i)
-	{
-		uint8_t from = get_move_from(moves[i]);
-		uint8_t to = get_move_to(moves[i]);
-		uint8_t promoted_piece = get_move_promoted_piece(moves[i]);
-		printf("\t%s%s%c ", square_to_coords[from],
-						   square_to_coords[to],
-						   promoted_piece ? tolower(pieces_to_ascii[promoted_piece]) : '\0');
-	}
-	printf("\n");
 }
 
 uint64_t board::rook_attacks(const uint8_t& square)
@@ -859,7 +845,9 @@ std::vector<uint32_t> board::extract_legal_moves(std::vector<uint32_t> moves)
 	for (int i = 0; i < moves.size(); ++i)
 	{
 		uint8_t temp_side = this->side;
-		make_move(moves[i]);
+		board_undo undo_board;
+		preserve_board(undo_board);
+		make_move(moves[i], false);
 		
 		uint64_t kbb = this->state[side_to_piece_type[temp_side][K]];
 		if (!is_square_attacked(bitwise::lsb(kbb), this->side))
@@ -867,13 +855,35 @@ std::vector<uint32_t> board::extract_legal_moves(std::vector<uint32_t> moves)
 			legal_moves.push_back(moves[i]);
 		}
 
-		undo_move();
+		restore_board(undo_board);
 	}
 
 	return legal_moves;
 }
 
-void board::save_history()
+void board::preserve_board(board_undo& undo_board)
+{
+	memcpy(undo_board.state, this->state, sizeof(this->state));
+	memcpy(undo_board.occupied, this->occupied, sizeof(this->occupied));
+	undo_board.side = this->side;
+	undo_board.castling = this->castling;
+	undo_board.enpassant = this->enpassant;
+	undo_board.fifty_move = this->fifty_move;
+	undo_board.hashkey = this->hashkey;
+}
+
+void board::restore_board(const board_undo& undo_board)
+{
+	memcpy(this->state, undo_board.state, sizeof(this->state));
+	memcpy(this->occupied, undo_board.occupied, sizeof(this->occupied));
+	this->side = undo_board.side;
+	this->castling = undo_board.castling;
+	this->enpassant = undo_board.enpassant;
+	this->fifty_move = undo_board.fifty_move;
+	this->hashkey = undo_board.hashkey;
+}
+
+bool board::push_history()
 {
 	board_undo undo = { 0 };
 	memcpy(undo.state, this->state, sizeof(this->state));
@@ -883,14 +893,30 @@ void board::save_history()
 	undo.enpassant = this->enpassant;
 	undo.fifty_move = this->fifty_move;
 	undo.hashkey = this->hashkey;
-
 	this->history.push_back(undo);
-	this->ply++;
+	return true;
 }
 
-bool board::make_move(const uint32_t& move)
+bool board::pop_history()
 {
-	save_history();
+	if (this->history.size() > 0)
+	{
+		board_undo undo = this->history[this->history.size() - 1];
+		memcpy(this->state, undo.state, sizeof(this->state));
+		memcpy(this->occupied, undo.occupied, sizeof(this->occupied));
+		this->side = undo.side;
+		this->castling = undo.castling;
+		this->enpassant = undo.enpassant;
+		this->fifty_move = undo.fifty_move;
+		this->hashkey = undo.hashkey;
+		this->history.pop_back();
+	}
+	return false;
+}
+
+bool board::make_move(const uint32_t& move, const bool& save_to_history)
+{
+	if (save_to_history) { push_history(); }
 
 	this->enpassant = no_sq;
 
@@ -989,40 +1015,5 @@ bool board::make_move(const uint32_t& move)
 	this->side ^= 1;
 
 	return true;
-}
-
-bool board::undo_move()
-{
-	if (this->history.size() > 0)
-	{
-		board_undo undo = this->history[this->history.size() - 1];
-		memcpy(this->state, undo.state, sizeof(this->state));
-		memcpy(this->occupied, undo.occupied, sizeof(this->occupied));
-		this->side = undo.side;
-		this->castling = undo.castling;
-		this->enpassant = undo.enpassant;
-		this->fifty_move = undo.fifty_move;
-		this->hashkey = undo.hashkey;
-
-		this->history.pop_back();
-		this->ply--;
-
-		return true;
-	}
-	return false;
-}
-
-int board::evaluate()
-{
-	int score = 0;
-
-	for (int i = P; i <= k; ++i)
-	{
-		uint64_t bitboard = this->state[i];
-		uint8_t count = bitwise::count(bitboard);
-		score += (piece_values[i] * count);
-	}
-
-	return (!this->side ? score : -score);
 }
 

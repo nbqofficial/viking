@@ -1,10 +1,10 @@
 #include "perft.h"
 
-void perft::leaf_node_check(board& b, const uint8_t& depth)
+void perft::node_test(board& b, const uint8_t& depth)
 {
 	if (!depth)
 	{
-		this->leaf_nodes++;
+		this->nodes++;
 		return;
 	}
 
@@ -13,26 +13,28 @@ void perft::leaf_node_check(board& b, const uint8_t& depth)
 
 	for (int i = 0; i < moves.size(); ++i)
 	{
-		b.make_move(moves[i]);
-		leaf_node_check(b, depth - 1);
-		b.undo_move();
+		board_undo undo_board;
+		b.preserve_board(undo_board);
+		b.make_move(moves[i], false);
+		node_test(b, depth - 1);
+		b.restore_board(undo_board);
 	}
 	return;
 }
 
-void perft::check(board& b, const uint8_t& depth)
+void perft::test(board& b, const uint8_t& depth)
 {
 	b.display();
-	printf("\t\t\t\tPERFORMANCE TESTING\n\n");
-	printf("\t\t\tdepth         nodes         \n\n");
+	printf("\tPERFORMANCE TESTING\n\n");
+	printf("\tdepth         nodes         \n\n");
 	for (int i = 1; i <= depth; ++i)
 	{
 		auto start_time = std::chrono::high_resolution_clock::now();
-		leaf_node_check(b, i);
+		node_test(b, i);
 		auto stop_time = std::chrono::high_resolution_clock::now();
 		auto exec_time = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time).count();
-		printf("\t\t\t%d", i);
-		printf("             %ld (%ld nps)\n", this->leaf_nodes, (long)(this->leaf_nodes / (exec_time / 1000000.0)));
-		this->leaf_nodes = 0;
+		printf("\t%d", i);
+		printf("             %lld (%lld nps)\n", this->nodes, (long long)(this->nodes / (exec_time / 1000000.0)));
+		this->nodes = 0;
 	}
 }

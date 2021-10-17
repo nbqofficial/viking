@@ -12,7 +12,6 @@ class board
 		uint8_t castling;
 		uint8_t enpassant;
 		uint8_t fifty_move;
-		uint16_t ply;
 		uint64_t hashkey;
 		std::vector<board_undo> history;
 
@@ -24,7 +23,7 @@ class board
 
 		bool reset();
 
-		bool init(const std::string& fen);
+		bool init(const std::string& fen, const bool& display_fen);
 
 		void display();
 
@@ -52,8 +51,6 @@ class board
 
 		void display_moves(const std::vector<uint32_t>& moves);
 
-		void display_pv(const std::vector<uint32_t>& moves, const int& depth);
-
 		uint64_t rook_attacks(const uint8_t& square);
 
 		uint64_t bishop_attacks(const uint8_t& square);
@@ -68,11 +65,13 @@ class board
 
 		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves);
 
-		void save_history();
+		void preserve_board(board_undo& undo_board);
 
-		bool make_move(const uint32_t& move);
+		void restore_board(const board_undo& undo_board);
 
-		bool undo_move();
+		bool push_history();
 
-		int evaluate();
+		bool pop_history();
+
+		bool make_move(const uint32_t& move, const bool& save_to_history);
 };

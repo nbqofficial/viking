@@ -6,11 +6,11 @@ class perft
 {
 	private:
 
-		long leaf_nodes = 0;
+		long long nodes = 0;
 
 	public:
 
-		void leaf_node_check(board& b, const uint8_t& depth);
+		void node_test(board& b, const uint8_t& depth);
 
-		void check(board& b, const uint8_t& depth);
+		void test(board& b, const uint8_t& depth);
 };

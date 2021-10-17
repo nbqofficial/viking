@@ -1,13 +1,13 @@
-#include "../src/search/search.h"
+#include "perft/perft.h"
 
 int main()
 {
 	board b;
-	b.init(wac1);
+	b.init(start_position, true);
 	b.display();
-
-	search s;
-	s.go(b, 10, true);
+	std::vector<uint32_t> moves;
+	b.generate_moves(moves, true, all_moves);
+	b.display_moves(moves);
 
 	return 0;
 }
