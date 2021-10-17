@@ -3,7 +3,7 @@
 int main()
 {	
 	board b;
-	b.init("r1b1kb1r/2p2ppp/p1p2q2/3p2N1/3Qn3/8/PPP2PPP/RNB1R1K1 w kq - 2 10", true);
+	b.init("rnbq1r1k/pp1npPbp/3p4/4P3/5P2/2p2N2/PPP3P1/R1BQKB1R w KQ - 0 1", true);
 	b.display();
 
 	pts p;
