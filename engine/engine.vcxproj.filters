@@ -25,9 +25,6 @@
     <Filter Include="src\search\negamax">
       <UniqueIdentifier>{3c4edfba-2bb6-4722-a03f-3a0b283c62f7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\search\pts">
-      <UniqueIdentifier>{f46845bc-7ed2-4c3f-adf1-ecf34b9fb453}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -51,9 +48,6 @@
     <ClCompile Include="src\search\search.cpp">
       <Filter>src\search</Filter>
     </ClCompile>
-    <ClCompile Include="src\search\pts\pts.cpp">
-      <Filter>src\search\pts</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -76,9 +70,6 @@
     </ClInclude>
     <ClInclude Include="src\search\search.h">
       <Filter>src\search</Filter>
-    </ClInclude>
-    <ClInclude Include="src\search\pts\pts.h">
-      <Filter>src\search\pts</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
