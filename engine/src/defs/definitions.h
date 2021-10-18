@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
+#define ENGINE_NAME "viking"
+#define ENGINE_VERSION "45"
+#define ENGINE_AUTHOR "nbq"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -19,7 +22,7 @@
 #define wac1 "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - 0 1"				            // Qg6
 #define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "     // test position
 #define RAND_64	((uint64_t)rand() | ((uint64_t) rand() << 15) | ((uint64_t) rand() << 30) | ((uint64_t) rand() << 45) | (((uint64_t)rand() & 0xf) << 60))
-#define MAX_INPUT_BUFFER 199
+#define MAX_INPUT_BUFFER 400*6
 
 typedef struct _board_undo
 {

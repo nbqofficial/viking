@@ -116,10 +116,8 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	return alpha;
 }
 
-uint32_t search::go(board& b, const int& depth, const bool& display_pv, const bool& display_debug)
+uint32_t search::go(board& b, const int& depth, const bool& display_info, const bool& display_debug)
 {
-	if (display_pv) { printf("\tdepth     principal variation\n\n"); }
-
 	uint32_t best_move = 0;
 	int best_score = -INF_SCORE;
 
@@ -131,14 +129,16 @@ uint32_t search::go(board& b, const int& depth, const bool& display_pv, const bo
 		if (uci_info.stopped) { break; }
 
 		best_move = newpv[0];
-		if (display_pv) { b.display_pv(newpv, current_depth); }
 
 		if (display_debug)
 		{
+			b.display_pv_debug(newpv, current_depth);
 			printf("\tevaluation: %d\n", best_score);
 			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
 			printf("\tnull cuttoffs: %lld\n", this->null_cuttoff);
 		}
+
+		if (display_info) { b.display_info(newpv, best_score, current_depth, this->nodes); }
 
 		this->nodes = 0;
 		this->fh = 0;

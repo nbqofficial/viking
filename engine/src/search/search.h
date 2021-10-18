@@ -17,5 +17,5 @@ class search
 
 	public:
 
-		uint32_t go(board& b, const int& depth, const bool& display_pv, const bool& display_debug);
+		uint32_t go(board& b, const int& depth, const bool& display_info, const bool& display_debug);
 };

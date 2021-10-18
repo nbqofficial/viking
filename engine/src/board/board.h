@@ -51,7 +51,9 @@ class board
 
 		void display_moves(const std::vector<uint32_t>& moves);
 
-		void display_pv(const std::vector<uint32_t>& pv, const int& depth);
+		void display_pv_debug(const std::vector<uint32_t>& pv, const int& depth);
+
+		void display_info(const std::vector<uint32_t>& pv, const int& score, const int& depth, const long long& nodes);
 
 		uint64_t rook_attacks(const uint8_t& square);
 
@@ -86,6 +88,10 @@ class board
 		bool push_history();
 
 		bool pop_history();
+
+		uint32_t string_to_move(const std::string& move_str);
+
+		std::string move_to_string(const uint32_t& move);
 
 		bool make_move(const uint32_t& move, const bool& save_to_history);
 

@@ -42,6 +42,7 @@
     <ClCompile Include="src\search\search.cpp">
       <Filter>src\search</Filter>
     </ClCompile>
+    <ClCompile Include="src\uci\uci.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -62,5 +63,6 @@
     <ClInclude Include="src\search\search.h">
       <Filter>src\search</Filter>
     </ClInclude>
+    <ClInclude Include="src\uci\uci.h" />
   </ItemGroup>
 </Project>

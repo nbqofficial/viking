@@ -290,7 +290,7 @@ void board::display_moves(const std::vector<uint32_t>& moves)
 	printf("\n\ttotal moves: %llu\n", moves.size());
 }
 
-void board::display_pv(const std::vector<uint32_t>& pv, const int& depth)
+void board::display_pv_debug(const std::vector<uint32_t>& pv, const int& depth)
 {
 	printf("\t%d          ", depth);
 	for (int i = 0; i < pv.size(); ++i)
@@ -302,6 +302,30 @@ void board::display_pv(const std::vector<uint32_t>& pv, const int& depth)
 		printf("%s%s%c ", square_to_coords[from],
 						  square_to_coords[to],
 						  promoted_piece ? tolower(pieces_to_ascii[promoted_piece]) : ' ');
+	}
+	printf("\n");
+}
+
+void board::display_info(const std::vector<uint32_t>& pv, const int& score, const int& depth, const long long& nodes)
+{
+	printf("info score cp %d depth %d nodes %lld pv ", score, depth, nodes);
+	for (int i = 0; i < pv.size(); ++i)
+	{
+		uint8_t from = get_move_from(pv[i]);
+		uint8_t to = get_move_to(pv[i]);
+		uint8_t promoted_piece = get_move_promoted_piece(pv[i]);
+
+		if (promoted_piece)
+		{
+			printf("%s%s%c ", square_to_coords[from],
+				              square_to_coords[to],
+				              tolower(pieces_to_ascii[promoted_piece]));
+		}
+		else
+		{
+			printf("%s%s ", square_to_coords[from],
+						    square_to_coords[to]);
+		}
 	}
 	printf("\n");
 }
@@ -975,6 +999,69 @@ bool board::pop_history()
 		this->history.pop_back();
 	}
 	return false;
+}
+
+uint32_t board::string_to_move(const std::string& move_str)
+{
+	uint8_t ff = helper::letter_to_file(move_str[0]);
+	uint8_t fr = 8 - (move_str[1] - '0');
+	uint8_t tf = helper::letter_to_file(move_str[2]);
+	uint8_t tr = 8 - (move_str[3] - '0');
+
+	uint8_t move_from = helper::rank_and_file_to_square(fr, ff);
+	uint8_t move_to = helper::rank_and_file_to_square(tr, tf);
+	uint8_t move_promoted = 0;
+
+	if (move_str.size() > 4)
+	{
+		switch (move_str[4])
+		{
+			case 'n':
+				if (this->side == white) { move_promoted = N; }
+				else { move_promoted = n; }
+				break;
+			case 'b':
+				if (this->side == white) { move_promoted = B; }
+				else { move_promoted = b; }
+				break;
+			case 'r':
+				if (this->side == white) { move_promoted = R; }
+				else { move_promoted = r; }
+				break;
+			case 'q':
+				if (this->side == white) { move_promoted = Q; }
+				else { move_promoted = q; }
+				break;
+		}
+	}
+
+	std::vector<uint32_t> moves;
+	generate_moves(moves, false, all_moves);
+
+	for (int i = 0; i < moves.size(); ++i)
+	{
+		if (get_move_from(moves[i]) == move_from && get_move_to(moves[i]) == move_to && get_move_promoted_piece(moves[i]) == move_promoted)
+		{
+			return moves[i];
+		}
+	}
+	return 0;
+}
+
+std::string board::move_to_string(const uint32_t& move)
+{
+	std::string move_str;
+
+	uint8_t from = get_move_from(move);
+	uint8_t to = get_move_to(move);
+	uint8_t promoted_piece = get_move_promoted_piece(move);
+
+	move_str += square_to_coords[from];
+	move_str += square_to_coords[to];
+
+	if (promoted_piece) { move_str += tolower(pieces_to_ascii[promoted_piece]); }
+
+	return move_str;
 }
 
 bool board::make_move(const uint32_t& move, const bool& save_to_history)
