@@ -144,7 +144,6 @@
     <ClCompile Include="src\board\board.cpp" />
     <ClCompile Include="src\helper\helper.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\search\negamax\negamax.cpp" />
     <ClCompile Include="src\perft\perft.cpp" />
     <ClCompile Include="src\search\search.cpp" />
   </ItemGroup>
@@ -153,7 +152,6 @@
     <ClInclude Include="src\board\board.h" />
     <ClInclude Include="src\defs\definitions.h" />
     <ClInclude Include="src\helper\helper.h" />
-    <ClInclude Include="src\search\negamax\negamax.h" />
     <ClInclude Include="src\perft\perft.h" />
     <ClInclude Include="src\search\search.h" />
   </ItemGroup>

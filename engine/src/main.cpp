@@ -6,7 +6,7 @@ int main()
 	b.init(wac1, true);
 	b.display();
 
-	negamax p;
+	search p;
 
 	uint32_t move = p.go(b, 8, true, false);
 
