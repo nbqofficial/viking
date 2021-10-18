@@ -65,8 +65,6 @@ class board
 
 		bool is_repetition();
 
-		uint8_t get_fifty_move();
-
 		void remove_enpassant();
 
 		uint8_t get_side();
@@ -77,7 +75,7 @@ class board
 
 		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
 
-		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type);
+		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal);
 
 		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves);
 

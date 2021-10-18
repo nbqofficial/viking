@@ -6,7 +6,7 @@ int search::quiescence(board& b, int alpha, int beta)
 
 	this->nodes++;
 
-	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
+	if (b.is_repetition()) { return 0; }
 
 	int score = b.evaluate();
 
@@ -16,7 +16,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, only_captures);
+	b.generate_moves(moves, true, only_captures, true);
 	int moves_size = moves.size();
 
 	for (int i = 0; i < moves_size; ++i)
@@ -51,7 +51,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	this->nodes++;
 
-	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
+	if (b.is_repetition()) { return 0; }
 
 	bool inchk = b.is_in_check();
 	if (inchk) { depth++; }
@@ -78,7 +78,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, all_moves);
+	b.generate_moves(moves, true, all_moves, true);
 	int moves_size = moves.size();
 
 	if (!moves_size)

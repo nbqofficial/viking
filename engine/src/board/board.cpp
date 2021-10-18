@@ -385,11 +385,6 @@ bool board::is_repetition()
 	return false;
 }
 
-uint8_t board::get_fifty_move()
-{
-	return this->fifty_move;
-}
-
 void board::remove_enpassant()
 {
 	this->enpassant = no_sq;
@@ -424,7 +419,7 @@ uint8_t board::get_piece_mvvlva(const uint8_t& piece, const uint8_t& square)
 	return 0;
 }
 
-void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type)
+void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal)
 {
 	uint8_t from_square = 0;
 	uint8_t to_square = 0;
@@ -917,7 +912,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 		}
 	}
 
-	moves = extract_legal_moves(moves);
+	if (extract_legal) { moves = extract_legal_moves(moves); }
 
 	if (sort)
 	{
@@ -1036,7 +1031,7 @@ uint32_t board::string_to_move(const std::string& move_str)
 	}
 
 	std::vector<uint32_t> moves;
-	generate_moves(moves, false, all_moves);
+	generate_moves(moves, false, all_moves, false);
 
 	for (int i = 0; i < moves.size(); ++i)
 	{
@@ -1178,11 +1173,8 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 int board::evaluate()
 {
 	int score = 0;
-	int pawn_count = 0;
-	int white_kingside_count = 0;
-	int white_queenside_count = 0;
-	int black_kingside_count = 0;
-	int black_queenside_count = 0;
+	int white_doubled_pawns = 0;
+	int black_doubled_pawns = 0;
 
 	uint64_t bitboard = 0ULL;
 
@@ -1190,17 +1182,6 @@ int board::evaluate()
 	{
 		bitboard = this->state[i];
 		uint64_t mobility = 0ULL;
-
-		if (i < p)
-		{
-			if (bitboard & king_side) { white_kingside_count++; }
-			if (bitboard & queen_side) { white_queenside_count++; }
-		}
-		else
-		{
-			if (bitboard & king_side) { black_kingside_count++; }
-			if (bitboard & queen_side) { black_queenside_count++; }
-		}
 
 		while (bitboard)
 		{
@@ -1210,10 +1191,10 @@ int board::evaluate()
 			if (i == P)
 			{
 				score += pawn_score[square];
-				pawn_count++;
 			}
 			else if (i == N)
 			{
+				score += knight_score[square];
 				mobility = knight_attacks[square];
 				score += bitwise::count(mobility);
 			}
@@ -1241,10 +1222,10 @@ int board::evaluate()
 			else if (i == p)
 			{
 				score -= pawn_score[mirror_score[square]];
-				pawn_count++;
 			}
 			else if (i == n)
 			{
+				score -= knight_score[mirror_score[square]];
 				mobility = knight_attacks[square];
 				score -= bitwise::count(mobility);
 			}
@@ -1274,32 +1255,52 @@ int board::evaluate()
 		}
 	}
 
-	bitboard = this->state[N];
-	while (bitboard)
+	if (this->history.size() < 30)
 	{
-		uint8_t square = bitwise::lsb(bitboard);
-		score += knight_score[square] + pawn_count;
-		bitwise::clear(bitboard, square);
-	}
+		bitboard = this->state[K];
+		if ((bitboard & file_cdef) && !(this->castling & white_oo) && !(this->castling & white_ooo)) { score -= 50; }
+		bitboard = this->state[k];
+		if ((bitboard & file_cdef) && !(this->castling & black_oo) && !(this->castling & black_ooo)) { score += 50; }
+	}	
 
-	bitboard = this->state[n];
-	while (bitboard)
-	{
-		uint8_t square = bitwise::lsb(bitboard);
-		score -= knight_score[mirror_score[square]] - pawn_count;
-		bitwise::clear(bitboard, square);
-	}
+	bitboard = this->state[P];
+	int pawns_on_file = bitwise::count(bitboard & file_a);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_b);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_c);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_d);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_e);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_f);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_g);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_g);
+	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
 
-	int kingside_difference = white_kingside_count - black_kingside_count;
-	int queenside_difference = white_queenside_count - black_queenside_count;
+	bitboard = this->state[p];
+	pawns_on_file = bitwise::count(bitboard & file_a);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_b);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_c);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_d);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_e);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_f);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_g);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
+	pawns_on_file = bitwise::count(bitboard & file_g);
+	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
 
-	bitboard = this->state[K];
-	if (bitboard & king_side) { score += (kingside_difference * 5); }
-	else if (bitboard & queen_side) { score += (queenside_difference * 5); }
-	
-	bitboard = this->state[k];
-	if (bitboard & king_side) { score += (kingside_difference * 5); }
-	else if (bitboard & queen_side) { score += (queenside_difference * 5); }
+	score -= (white_doubled_pawns * 30);
+	score += (black_doubled_pawns * 30);
 
 	return (!this->side ? score : -score);
 }

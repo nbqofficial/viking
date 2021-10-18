@@ -98,11 +98,25 @@ static const uint8_t side_to_piece_type[2][6] = {
 
 static const uint64_t file_a = 72340172838076673L;
 
+static const uint64_t file_b = 144680345676153346L;
+
+static const uint64_t file_c = 289360691352306692L;
+
+static const uint64_t file_d = 578721382704613384L;
+
+static const uint64_t file_e = 1157442765409226768L;
+
+static const uint64_t file_f = 2314885530818453536L;
+
+static const uint64_t file_g = 4629771061636907072L;
+
 static const uint64_t file_h = -9187201950435737472L;
 
 static const uint64_t file_ab = 217020518514230019L;
 
 static const uint64_t file_gh = -4557430888798830400L;
+
+static const uint64_t file_cdef = 4340410370284600380L;
 
 static const uint64_t rank_1 = -72057594037927936L;
 
@@ -192,8 +206,8 @@ static const uint8_t castling_rights[] = {
     13, 15, 15, 15, 12, 15, 15, 14 };
 
 static const int piece_values[] = {
-    100, 300, 315, 500, 900, 10000,
-    -100, -300, -315, -500, -900, -10000
+    100, 300, 320, 500, 1000, 10000,
+    -100, -300, -320, -500, -1000, -10000
 };
 
 static const uint64_t state_hashkey[12][64] = {
@@ -389,7 +403,7 @@ static const int MATE_SCORE = 300000;
 
 static const int MAX_DEPTH = 64;
 
-static const int NULL_MOVE_R = 4;
+static const int NULL_MOVE_R = 3;
 
 
 // move representation in binary                var                 hex

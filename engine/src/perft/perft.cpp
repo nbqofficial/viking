@@ -9,7 +9,7 @@ void perft::node_test(board& b, const uint8_t& depth)
 	}
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, false, all_moves);
+	b.generate_moves(moves, false, all_moves, true);
 
 	for (int i = 0; i < moves.size(); ++i)
 	{

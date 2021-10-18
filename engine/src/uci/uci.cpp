@@ -158,12 +158,10 @@ void uci::uci_loop()
 		else if (!strncmp(line, "position", 8))
 		{
 			position(line);
-			this->b.display();
 		}
 		else if (!strncmp(line, "ucinewgame", 10))
 		{
 			position((char*)"position startpos\n");
-			this->b.display();
 		}
 		else if (!strncmp(line, "go", 2))
 		{
