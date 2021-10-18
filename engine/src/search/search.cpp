@@ -2,6 +2,8 @@
 
 int search::quiescence(board& b, int alpha, int beta)
 {
+	if ((this->nodes & 2047) == 0) { helper::check_up(); }
+
 	this->nodes++;
 
 	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
@@ -25,6 +27,8 @@ int search::quiescence(board& b, int alpha, int beta)
 		score = -quiescence(b, -beta, -alpha);
 		b.restore_board(undo_board);
 
+		if (uci_info.stopped) { break; }
+
 		if (score > alpha)
 		{
 			if (score >= beta) 
@@ -42,6 +46,8 @@ int search::quiescence(board& b, int alpha, int beta)
 int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move)
 {
 	if (depth <= 0) { return quiescence(b, alpha, beta); }
+
+	if ((this->nodes & 2047) == 0) { helper::check_up(); }
 
 	this->nodes++;
 
@@ -90,6 +96,8 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
 		b.restore_board(undo_board);
 
+		if (uci_info.stopped) { break; }
+
 		if (score > alpha)
 		{
 			if (score >= beta)
@@ -119,6 +127,9 @@ uint32_t search::go(board& b, const int& depth, const bool& display_pv, const bo
 	{
 		std::vector<uint32_t> newpv;
 		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, newpv, true);
+
+		if (uci_info.stopped) { break; }
+
 		best_move = newpv[0];
 		if (display_pv) { b.display_pv(newpv, current_depth); }
 
@@ -134,6 +145,6 @@ uint32_t search::go(board& b, const int& depth, const bool& display_pv, const bo
 		this->fhf = 0;
 		this->null_cuttoff = 0;
 	}
-
+	helper::clear_searchinfo();
 	return best_move;
 }

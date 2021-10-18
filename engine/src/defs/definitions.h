@@ -19,7 +19,7 @@
 #define wac1 "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - 0 1"				            // Qg6
 #define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "     // test position
 #define RAND_64	((uint64_t)rand() | ((uint64_t) rand() << 15) | ((uint64_t) rand() << 30) | ((uint64_t) rand() << 45) | (((uint64_t)rand() & 0xf) << 60))
-
+#define MAX_INPUT_BUFFER 199
 
 typedef struct _board_undo
 {
@@ -31,6 +31,17 @@ typedef struct _board_undo
     uint8_t fifty_move;
     uint64_t hashkey;
 }board_undo, *pboard_undo;
+
+typedef struct _search_info
+{
+    int start_time;
+    int stop_time;
+    int depth;
+    bool timeset;
+    bool infinite;
+    bool quit;
+    bool stopped;
+}search_info, *psearch_info;
 
 
 enum squares : uint8_t
