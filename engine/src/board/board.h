@@ -65,6 +65,12 @@ class board
 
 		uint8_t get_fifty_move();
 
+		void remove_enpassant();
+
+		uint8_t get_side();
+
+		void switch_side();
+
 		void generate_hashkey();
 
 		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);

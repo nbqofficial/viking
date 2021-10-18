@@ -27,14 +27,19 @@ int search::quiescence(board& b, int alpha, int beta)
 
 		if (score > alpha)
 		{
-			if (score >= beta) { return beta; }
+			if (score >= beta) 
+			{ 
+				if (i == 0) { this->fhf++; }
+				this->fh++;
+				return beta; 
+			}
 			alpha = score;
 		}
 	}
 	return alpha;
 }
 
-int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv)
+int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move)
 {
 	if (depth <= 0) { return quiescence(b, alpha, beta); }
 
@@ -46,6 +51,25 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	if (inchk) { depth++; }
 
 	int score = -INF_SCORE;
+
+	if (null_move && !inchk && depth >= NULL_MOVE_R)
+	{
+		std::vector<uint32_t> cpv;
+		board_undo undo_board;
+		b.preserve_board(undo_board);
+		b.remove_enpassant();
+		b.switch_side();
+		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, cpv, false);
+		b.restore_board(undo_board);
+
+		if (score >= beta && abs(score) < (MATE_SCORE - MAX_DEPTH))
+		{
+			this->null_cuttoff++;
+			return beta;
+		}
+	}
+
+	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
 	b.generate_moves(moves, true, all_moves);
@@ -63,7 +87,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		board_undo undo_board;
 		b.preserve_board(undo_board);
 		b.make_move(moves[i], false);
-		score = -negamax(b, depth - 1, -beta, -alpha, childpv);
+		score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
 		b.restore_board(undo_board);
 
 		if (score > alpha)
@@ -75,6 +99,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 				return beta;
 			}
 			alpha = score;
+
 			pv.clear();
 			pv.push_back(moves[i]);
 			std::copy(childpv.begin(), childpv.end(), std::back_inserter(pv));
@@ -93,7 +118,7 @@ uint32_t search::go(board& b, const int& depth, const bool& display_pv, const bo
 	for (int current_depth = 1; current_depth <= depth; ++current_depth)
 	{
 		std::vector<uint32_t> newpv;
-		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, newpv);
+		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, newpv, true);
 		best_move = newpv[0];
 		if (display_pv) { b.display_pv(newpv, current_depth); }
 
@@ -101,12 +126,14 @@ uint32_t search::go(board& b, const int& depth, const bool& display_pv, const bo
 		{
 			printf("\tevaluation: %d\n", best_score);
 			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
+			printf("\tnull cuttoffs: %lld\n", this->null_cuttoff);
 		}
-	}
 
-	this->nodes = 0;
-	this->fh = 0;
-	this->fhf = 0;
+		this->nodes = 0;
+		this->fh = 0;
+		this->fhf = 0;
+		this->null_cuttoff = 0;
+	}
 
 	return best_move;
 }

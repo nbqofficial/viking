@@ -366,6 +366,21 @@ uint8_t board::get_fifty_move()
 	return this->fifty_move;
 }
 
+void board::remove_enpassant()
+{
+	this->enpassant = no_sq;
+}
+
+uint8_t board::get_side()
+{
+	return this->side;
+}
+
+void board::switch_side()
+{
+	this->side ^= 1;
+}
+
 void board::generate_hashkey()
 {
 	this->hashkey = 0ULL;	
@@ -1076,12 +1091,128 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 int board::evaluate()
 {
 	int score = 0;
+	int pawn_count = 0;
+	int white_kingside_count = 0;
+	int white_queenside_count = 0;
+	int black_kingside_count = 0;
+	int black_queenside_count = 0;
+
+	uint64_t bitboard = 0ULL;
 
 	for (uint8_t i = P; i <= k; ++i)
 	{
-		uint64_t bitboard = this->state[i];
-		score += (bitwise::count(bitboard) * piece_values[i]);
+		bitboard = this->state[i];
+		uint64_t mobility = 0ULL;
+
+		if (i < p)
+		{
+			if (bitboard & king_side) { white_kingside_count++; }
+			if (bitboard & queen_side) { white_queenside_count++; }
+		}
+		else
+		{
+			if (bitboard & king_side) { black_kingside_count++; }
+			if (bitboard & queen_side) { black_queenside_count++; }
+		}
+
+		while (bitboard)
+		{
+			uint8_t square = bitwise::lsb(bitboard);
+			score += piece_values[i];
+
+			if (i == P)
+			{
+				score += pawn_score[square];
+				pawn_count++;
+			}
+			else if (i == N)
+			{
+				mobility = knight_attacks[square];
+				score += bitwise::count(mobility);
+			}
+			else if (i == B)
+			{
+				score += bishop_score[square];
+				mobility = bishop_attacks(square);
+				score += bitwise::count(mobility);
+			}
+			else if (i == R)
+			{
+				score += rook_score[square];
+				mobility = rook_attacks(square);
+				score += bitwise::count(mobility);
+			}
+			else if (i == Q)
+			{
+				mobility = bishop_attacks(square) | rook_attacks(square);
+				score += bitwise::count(mobility);
+			}
+			else if (i == K)
+			{
+				score += king_score[square];
+			}
+			else if (i == p)
+			{
+				score -= pawn_score[mirror_score[square]];
+				pawn_count++;
+			}
+			else if (i == n)
+			{
+				mobility = knight_attacks[square];
+				score -= bitwise::count(mobility);
+			}
+			else if (i == b)
+			{
+				score -= bishop_score[mirror_score[square]];
+				mobility = bishop_attacks(square);
+				score -= bitwise::count(mobility);
+			}
+			else if (i == r)
+			{
+				score -= rook_score[mirror_score[square]];
+				mobility = rook_attacks(square);
+				score -= bitwise::count(mobility);
+			}
+			else if (i == q)
+			{
+				mobility = bishop_attacks(square) | rook_attacks(square);
+				score -= bitwise::count(mobility);
+			}
+			else if (i == k)
+			{
+				score -= king_score[mirror_score[square]];
+			}
+
+			bitwise::clear(bitboard, square);
+		}
 	}
+
+	bitboard = this->state[N];
+	while (bitboard)
+	{
+		uint8_t square = bitwise::lsb(bitboard);
+		score += knight_score[square] + pawn_count;
+		bitwise::clear(bitboard, square);
+	}
+
+	bitboard = this->state[n];
+	while (bitboard)
+	{
+		uint8_t square = bitwise::lsb(bitboard);
+		score -= knight_score[mirror_score[square]] - pawn_count;
+		bitwise::clear(bitboard, square);
+	}
+
+	int kingside_difference = white_kingside_count - black_kingside_count;
+	int queenside_difference = white_queenside_count - black_queenside_count;
+
+	bitboard = this->state[K];
+	if (bitboard & king_side) { score += (kingside_difference * 5); }
+	else if (bitboard & queen_side) { score += (queenside_difference * 5); }
+	
+	bitboard = this->state[k];
+	if (bitboard & king_side) { score += (kingside_difference * 5); }
+	else if (bitboard & queen_side) { score += (queenside_difference * 5); }
 
 	return (!this->side ? score : -score);
 }
