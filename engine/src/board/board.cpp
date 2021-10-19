@@ -1206,7 +1206,7 @@ int board::evaluate()
 			case P:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);				
 				doubled_pawns = bitwise::count(this->state[P] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 4); }
+				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 3); }
 				bb = (this->state[P] & isolated_masks_by_square[square]);
 				if (!bb) { score -= 3; }
 				bb = (this->state[p] & white_passed_masks_by_square[square]);
@@ -1234,7 +1234,7 @@ int board::evaluate()
 				break;
 			case K:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
-				score += (bitwise::count((king_attacks[square] & this->occupied[white])) * 4);
+				score += (bitwise::count((king_attacks[square] & this->occupied[white])) * 2);
 				bb = (this->state[P] & file_masks_by_square[square]);
 				if (!bb) { score -= 10; }
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
@@ -1243,7 +1243,7 @@ int board::evaluate()
 			case p:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
 				doubled_pawns = bitwise::count(this->state[p] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 4); }
+				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 3); }
 				bb = (this->state[p] & isolated_masks_by_square[square]);
 				if (!bb) { score += 3; }
 				bb = (this->state[P] & black_passed_masks_by_square[square]);
@@ -1271,7 +1271,7 @@ int board::evaluate()
 				break;
 			case k:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
-				score -= (bitwise::count((king_attacks[square] & this->occupied[black])) * 4);
+				score -= (bitwise::count((king_attacks[square] & this->occupied[black])) * 2);
 				bb = (this->state[p] & file_masks_by_square[square]);
 				if (!bb) { score += 10; }
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);

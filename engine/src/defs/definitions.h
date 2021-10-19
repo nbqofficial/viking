@@ -8,7 +8,7 @@
 #include <chrono>
 
 #define ENGINE_NAME "viking"
-#define ENGINE_VERSION "140"
+#define ENGINE_VERSION "150"
 #define ENGINE_AUTHOR "Dario Pendic"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
@@ -425,7 +425,7 @@ static const int positional_evaluation[2][6][64] = {
     }
 };
 
-static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 80, 100, 125 };
+static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 70, 85, 100 };
 
 static const uint64_t state_hashkey[12][64] = {
     { 
