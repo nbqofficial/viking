@@ -378,6 +378,9 @@ bool board::is_in_check()
 
 bool board::is_repetition()
 {
+	if (!this->history.size()) { return false; }
+	if (this->fifty_move == 0) { return false; }
+
 	for (int i = this->history.size() - this->fifty_move; i < this->history.size(); ++i)
 	{
 		if (this->history[i].hashkey == this->hashkey) { return true; }
