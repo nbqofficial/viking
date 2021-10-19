@@ -182,5 +182,9 @@ void uci::uci_loop()
 		{
 			this->pf.test(this->b, 5);
 		}
+		else if (!strncmp(line, "displayboard", 12))
+		{
+			this->b.display();
+		}
 	}
 }

@@ -405,6 +405,8 @@ static const int MAX_DEPTH = 64;
 
 static const int NULL_MOVE_R = 3;
 
+static const double LOW_PROBABILITY_LIMIT = 0.000000001;
+
 
 // move representation in binary                var                 hex
 

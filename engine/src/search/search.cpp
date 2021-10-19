@@ -43,9 +43,11 @@ int search::quiescence(board& b, int alpha, int beta)
 	return alpha;
 }
 
-int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move)
+int search::negamax(board& b, const int& depth, double prob, int alpha, int beta, std::vector<uint32_t>& pv)
 {
-	if (depth <= 0) { return quiescence(b, alpha, beta); }
+	bool found_pv = false;
+
+	if (prob < LOW_PROBABILITY_LIMIT) { return quiescence(b, alpha, beta); }
 
 	if ((this->nodes & 2047) == 0) { helper::check_up(); }
 
@@ -54,28 +56,9 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	if (b.is_repetition()) { return 0; }
 
 	bool inchk = b.is_in_check();
-	if (inchk) { depth++; }
+	if (inchk) { prob *= 10; }
 
 	int score = -INF_SCORE;
-
-	if (null_move && !inchk && depth >= NULL_MOVE_R)
-	{
-		std::vector<uint32_t> cpv;
-		board_undo undo_board;
-		b.preserve_board(undo_board);
-		b.remove_enpassant();
-		b.switch_side();
-		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, cpv, false);
-		b.restore_board(undo_board);
-
-		if (score >= beta && abs(score) < (MATE_SCORE - MAX_DEPTH))
-		{
-			this->null_cuttoff++;
-			return beta;
-		}
-	}
-
-	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
 	b.generate_moves(moves, true, all_moves, true);
@@ -93,7 +76,21 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		board_undo undo_board;
 		b.preserve_board(undo_board);
 		b.make_move(moves[i], false);
-		score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
+
+		if (found_pv)
+		{
+			score = -negamax(b, depth - 1, (prob / moves_size), -alpha - 1, -alpha, childpv);
+		
+			if ((score > alpha) && (score < beta))
+			{
+				score = -negamax(b, depth - 1, (prob / moves_size), -beta, -alpha, childpv);
+			}
+		}
+		else
+		{
+			score = -negamax(b, depth - 1, (prob / moves_size), -beta, -alpha, childpv);
+		}
+		
 		b.restore_board(undo_board);
 
 		if (uci_info.stopped) { break; }
@@ -107,6 +104,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 				return beta;
 			}
 			alpha = score;
+			found_pv = true;
 
 			pv.clear();
 			pv.push_back(moves[i]);
@@ -124,7 +122,8 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 	for (int current_depth = 1; current_depth <= depth; ++current_depth)
 	{
 		std::vector<uint32_t> newpv;
-		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, newpv, true);
+		double prob = (LOW_PROBABILITY_LIMIT * pow(10, current_depth));
+		best_score = negamax(b, current_depth, prob, -INF_SCORE, INF_SCORE, newpv);
 
 		if (uci_info.stopped) { break; }
 
@@ -133,6 +132,7 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 		if (display_debug)
 		{
 			b.display_pv_debug(newpv, current_depth);
+			printf("\tprobability: %f\n", prob);
 			printf("\tevaluation: %d\n", best_score);
 			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
 			printf("\tnull cuttoffs: %lld\n", this->null_cuttoff);
