@@ -439,18 +439,18 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 					from_square = bitwise::lsb(bitboard);
 					to_square = from_square - 8;
 
-					if (type == all_moves)
+					if (!(to_square < a8) && !bitwise::check(this->occupied[both], to_square))
 					{
-						if (!(to_square < a8) && !bitwise::check(this->occupied[both], to_square))
+						if (from_square >= a7 && from_square <= h7)
 						{
-							if (from_square >= a7 && from_square <= h7)
-							{
-								moves.push_back(encode_move(from_square, to_square, piece, Q, 0, 0, 0, 0, mvvlva[P][R]));
-								moves.push_back(encode_move(from_square, to_square, piece, R, 0, 0, 0, 0, mvvlva[P][R]));
-								moves.push_back(encode_move(from_square, to_square, piece, B, 0, 0, 0, 0, mvvlva[P][R]));
-								moves.push_back(encode_move(from_square, to_square, piece, N, 0, 0, 0, 0, mvvlva[K][R]));
-							}
-							else
+							moves.push_back(encode_move(from_square, to_square, piece, Q, 0, 0, 0, 0, mvvlva[P][R]));
+							moves.push_back(encode_move(from_square, to_square, piece, R, 0, 0, 0, 0, mvvlva[P][R]));
+							moves.push_back(encode_move(from_square, to_square, piece, B, 0, 0, 0, 0, mvvlva[P][R]));
+							moves.push_back(encode_move(from_square, to_square, piece, N, 0, 0, 0, 0, mvvlva[P][R]));
+						}
+						else
+						{
+							if (type == all_moves)
 							{
 								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 
@@ -682,18 +682,18 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 					from_square = bitwise::lsb(bitboard);
 					to_square = from_square + 8;
 
-					if (type == all_moves)
+					if (!(to_square > h1) && !bitwise::check(this->occupied[both], to_square))
 					{
-						if (!(to_square > h1) && !bitwise::check(this->occupied[both], to_square))
+						if (from_square >= a2 && from_square <= h2)
 						{
-							if (from_square >= a2 && from_square <= h2)
-							{
-								moves.push_back(encode_move(from_square, to_square, piece, q, 0, 0, 0, 0, mvvlva[P][R]));
-								moves.push_back(encode_move(from_square, to_square, piece, r, 0, 0, 0, 0, mvvlva[P][R]));
-								moves.push_back(encode_move(from_square, to_square, piece, b, 0, 0, 0, 0, mvvlva[P][R]));
-								moves.push_back(encode_move(from_square, to_square, piece, n, 0, 0, 0, 0, mvvlva[P][R]));
-							}
-							else
+							moves.push_back(encode_move(from_square, to_square, piece, q, 0, 0, 0, 0, mvvlva[P][R]));
+							moves.push_back(encode_move(from_square, to_square, piece, r, 0, 0, 0, 0, mvvlva[P][R]));
+							moves.push_back(encode_move(from_square, to_square, piece, b, 0, 0, 0, 0, mvvlva[P][R]));
+							moves.push_back(encode_move(from_square, to_square, piece, n, 0, 0, 0, 0, mvvlva[P][R]));
+						}
+						else
+						{
+							if (type == all_moves)
 							{
 								moves.push_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, 0));
 
@@ -704,7 +704,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 							}
 						}
 					}
-
+					
 					attacks = pawn_attacks[black][from_square] & this->occupied[white];
 
 					while (attacks)

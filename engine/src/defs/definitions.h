@@ -8,7 +8,7 @@
 #include <chrono>
 
 #define ENGINE_NAME "viking"
-#define ENGINE_VERSION "45"
+#define ENGINE_VERSION "70"
 #define ENGINE_AUTHOR "nbq"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
@@ -76,7 +76,7 @@ enum castle : uint8_t
 
 enum movegen : uint8_t
 {
-    all_moves, only_captures
+    all_moves, only_forcing
 };
 
 

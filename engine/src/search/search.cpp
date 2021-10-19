@@ -16,7 +16,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, only_captures, true);
+	b.generate_moves(moves, true, only_forcing, true);
 	int moves_size = moves.size();
 
 	for (int i = 0; i < moves_size; ++i)
