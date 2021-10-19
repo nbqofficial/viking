@@ -1186,19 +1186,6 @@ int board::get_game_phase_score()
 
 int board::evaluate()
 {
-	/*
-	*	- (ADDED) material - tapered
-	*	- (ADDED) piece square tables (opening and endgame) - tapered
-	*	- (ADDED) piece mobility
-	*	- (ADDED) bishop pair bonus
-	*	- bishop on opponent weak color complex bonus
-	*	- passed pawns bonus
-	*	- (ADDED) isolated pawns penalty
-	*	- (ADDED) doubled pawns penalty
-	*	- (ADDED) rook on open or semiopen file bonus
-	*	- (ADDED) open or semiopen file in front of the king penalty
-	*	- (ADDED) king shield bonus
-	*/
 	int score = 0;
 	int doubled_pawns = 0;
 	int game_phase_score = get_game_phase_score();
@@ -1219,9 +1206,11 @@ int board::evaluate()
 			case P:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);				
 				doubled_pawns = bitwise::count(this->state[P] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 6); }
+				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 7); }
 				bb = (this->state[P] & isolated_masks_by_square[square]);
 				if (!bb) { score -= 5; }
+				bb = (this->state[p] & white_passed_masks_by_square[square]);
+				if (!bb) { score += passed_pawn_evaluation[rank_by_square[square]]; }
 				break;
 			case N:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
@@ -1254,9 +1243,11 @@ int board::evaluate()
 			case p:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
 				doubled_pawns = bitwise::count(this->state[p] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 6); }
+				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 7); }
 				bb = (this->state[p] & isolated_masks_by_square[square]);
 				if (!bb) { score += 5; }
+				bb = (this->state[P] & black_passed_masks_by_square[square]);
+				if (!bb) { score -= passed_pawn_evaluation[rank_by_square[square]]; }
 				break;
 			case n:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
