@@ -1170,137 +1170,90 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 	return true;
 }
 
-int board::evaluate()
+int board::get_game_phase_score()
 {
 	int score = 0;
-	int white_doubled_pawns = 0;
-	int black_doubled_pawns = 0;
 
-	uint64_t bitboard = 0ULL;
+	for (uint8_t i = N; i <= Q; ++i) { score += (bitwise::count(this->state[i]) * material_evaluation[opening][i]); }
 
-	for (uint8_t i = P; i <= k; ++i)
+	for (uint8_t i = n; i <= q; ++i) { score += (bitwise::count(this->state[i]) * -material_evaluation[opening][i]); }
+
+	return score;
+}
+
+int board::evaluate()
+{
+/*
+*	- material
+*	- piece square tables (opening and endgame)
+*	- piece mobility
+*	- bishop pair bonus
+*	- bishop on opponent weak color complex bonus
+*	- passed pawns bonus
+*	- isolated pawns penalty
+*	- doubled pawns penalty
+*	- rook on open or semiopen file bonus
+*	- open or semiopen file in front of the king penalty
+*	- is king castled bonus
+*	- king shield bonus
+*	- pin penalty
+*/
+	int score = 0;
+
+	int game_phase_score = get_game_phase_score();
+
+	for (uint8_t piece = P; piece <= k; ++piece)
 	{
-		bitboard = this->state[i];
-		uint64_t mobility = 0ULL;
-
+		uint64_t bitboard = this->state[piece];
+		
 		while (bitboard)
 		{
 			uint8_t square = bitwise::lsb(bitboard);
-			score += piece_values[i];
 
-			if (i == P)
-			{
-				score += pawn_score[square];
-			}
-			else if (i == N)
-			{
-				score += knight_score[square];
-				mobility = knight_attacks[square];
-				score += bitwise::count(mobility);
-			}
-			else if (i == B)
-			{
-				score += bishop_score[square];
-				mobility = bishop_attacks(square);
-				score += bitwise::count(mobility);
-			}
-			else if (i == R)
-			{
-				score += rook_score[square];
-				mobility = rook_attacks(square);
-				score += bitwise::count(mobility);
-			}
-			else if (i == Q)
-			{
-				mobility = bishop_attacks(square) | rook_attacks(square);
-				score += bitwise::count(mobility);
-			}
-			else if (i == K)
-			{
-				score += king_score[square];
-			}
-			else if (i == p)
-			{
-				score -= pawn_score[mirror_score[square]];
-			}
-			else if (i == n)
-			{
-				score -= knight_score[mirror_score[square]];
-				mobility = knight_attacks[square];
-				score -= bitwise::count(mobility);
-			}
-			else if (i == b)
-			{
-				score -= bishop_score[mirror_score[square]];
-				mobility = bishop_attacks(square);
-				score -= bitwise::count(mobility);
-			}
-			else if (i == r)
-			{
-				score -= rook_score[mirror_score[square]];
-				mobility = rook_attacks(square);
-				score -= bitwise::count(mobility);
-			}
-			else if (i == q)
-			{
-				mobility = bishop_attacks(square) | rook_attacks(square);
-				score -= bitwise::count(mobility);
-			}
-			else if (i == k)
-			{
-				score -= king_score[mirror_score[square]];
-			}
+			score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, material_evaluation[endgame][piece], material_evaluation[opening][piece]);
 
+			switch (piece)
+			{
+				case P:
+					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);
+					break;
+				case N:
+					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
+					break;
+				case B:
+					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
+					break;
+				case R:
+					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][square], positional_evaluation[opening][R][square]);
+					break;
+				case Q:
+					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
+					break;
+				case K:
+					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
+					break;
+				case p:
+					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
+					break;
+				case n:
+					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
+					break;
+				case b:
+					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
+					break;
+				case r:
+					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][mirror_square[square]], positional_evaluation[opening][R][mirror_square[square]]);
+					break;
+				case q:
+					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
+					break;
+				case k:
+					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
+					break;
+			}
 			bitwise::clear(bitboard, square);
 		}
 	}
-
-	if (this->history.size() < 30)
-	{
-		bitboard = this->state[K];
-		if ((bitboard & file_cdef) && !(this->castling & white_oo) && !(this->castling & white_ooo)) { score -= 50; }
-		bitboard = this->state[k];
-		if ((bitboard & file_cdef) && !(this->castling & black_oo) && !(this->castling & black_ooo)) { score += 50; }
-	}	
-
-	bitboard = this->state[P];
-	int pawns_on_file = bitwise::count(bitboard & file_a);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_b);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_c);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_d);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_e);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_f);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_g);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_g);
-	if (pawns_on_file > 0) { white_doubled_pawns += pawns_on_file - 1; }
-
-	bitboard = this->state[p];
-	pawns_on_file = bitwise::count(bitboard & file_a);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_b);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_c);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_d);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_e);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_f);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_g);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-	pawns_on_file = bitwise::count(bitboard & file_g);
-	if (pawns_on_file > 0) { black_doubled_pawns += pawns_on_file - 1; }
-
-	score -= (white_doubled_pawns * 30);
-	score += (black_doubled_pawns * 30);
 
 	return (!this->side ? score : -score);
 }

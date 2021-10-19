@@ -3,6 +3,11 @@
 HANDLE console_handle = 0;
 search_info uci_info = { 0 };
 
+long helper::taper(long x, long in_min, long in_max, long out_min, long out_max)
+{
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 uint8_t helper::letter_to_file(const char& letter)
 {
     return (letter - '0') - 49;

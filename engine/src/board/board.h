@@ -93,5 +93,7 @@ class board
 
 		bool make_move(const uint32_t& move, const bool& save_to_history);
 
+		int get_game_phase_score();
+
 		int evaluate();
 };
