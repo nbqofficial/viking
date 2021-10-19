@@ -16,7 +16,7 @@ class board
 		std::vector<board_undo> history;
 
 	public:
-
+		
 		board();
 
 		~board();

@@ -4,6 +4,5 @@ int main()
 {	
 	uci u;
 	u.uci_loop();
-
 	return 0;
 }

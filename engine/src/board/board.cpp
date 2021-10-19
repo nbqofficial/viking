@@ -1186,29 +1186,28 @@ int board::get_game_phase_score()
 
 int board::evaluate()
 {
-/*
-*	- material
-*	- piece square tables (opening and endgame)
-*	- piece mobility
-*	- bishop pair bonus
-*	- bishop on opponent weak color complex bonus
-*	- passed pawns bonus
-*	- isolated pawns penalty
-*	- doubled pawns penalty
-*	- rook on open or semiopen file bonus
-*	- open or semiopen file in front of the king penalty
-*	- is king castled bonus
-*	- king shield bonus
-*	- pin penalty
-*/
+	/*
+	*	- (ADDED) material - tapered
+	*	- (ADDED) piece square tables (opening and endgame) - tapered
+	*	- (ADDED) piece mobility
+	*	- (ADDED) bishop pair bonus
+	*	- bishop on opponent weak color complex bonus
+	*	- passed pawns bonus
+	*	- (ADDED) isolated pawns penalty
+	*	- (ADDED) doubled pawns penalty
+	*	- (ADDED) rook on open or semiopen file bonus
+	*	- (ADDED) open or semiopen file in front of the king penalty
+	*	- (ADDED) king shield bonus
+	*/
 	int score = 0;
-
+	int doubled_pawns = 0;
 	int game_phase_score = get_game_phase_score();
+	uint64_t bb = 0ULL;
 
 	for (uint8_t piece = P; piece <= k; ++piece)
 	{
 		uint64_t bitboard = this->state[piece];
-		
+
 		while (bitboard)
 		{
 			uint8_t square = bitwise::lsb(bitboard);
@@ -1217,42 +1216,76 @@ int board::evaluate()
 
 			switch (piece)
 			{
-				case P:
-					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);
-					break;
-				case N:
-					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
-					break;
-				case B:
-					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
-					break;
-				case R:
-					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][square], positional_evaluation[opening][R][square]);
-					break;
-				case Q:
-					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
-					break;
-				case K:
-					score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
-					break;
-				case p:
-					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
-					break;
-				case n:
-					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
-					break;
-				case b:
-					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
-					break;
-				case r:
-					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][mirror_square[square]], positional_evaluation[opening][R][mirror_square[square]]);
-					break;
-				case q:
-					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
-					break;
-				case k:
-					score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
-					break;
+			case P:
+				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);				
+				doubled_pawns = bitwise::count(this->state[P] & file_masks_by_square[square]);
+				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 6); }
+				bb = (this->state[P] & isolated_masks_by_square[square]);
+				if (!bb) { score -= 5; }
+				break;
+			case N:
+				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
+				score += ((bitwise::count(knight_attacks[square] & ~this->occupied[both]) - 2) * 2);
+				break;
+			case B:
+				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
+				score += ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 5);
+				score += 10;
+				break;
+			case R:
+				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][square], positional_evaluation[opening][R][square]);
+				bb = (this->state[P] & file_masks_by_square[square]);
+				if (!bb) { score += 10; }
+				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
+				if (!bb) { score += 15; }
+				break;
+			case Q:
+				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
+				score += ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[both]) - 9) * 3);
+				break;
+			case K:
+				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
+				score += (bitwise::count((king_attacks[square] & this->occupied[white])) * 4);
+				bb = (this->state[P] & file_masks_by_square[square]);
+				if (!bb) { score -= 10; }
+				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
+				if (!bb) { score -= 15; }		
+				break;
+			case p:
+				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
+				doubled_pawns = bitwise::count(this->state[p] & file_masks_by_square[square]);
+				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 6); }
+				bb = (this->state[p] & isolated_masks_by_square[square]);
+				if (!bb) { score += 5; }
+				break;
+			case n:
+				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
+				score -= ((bitwise::count(knight_attacks[square] & ~this->occupied[both]) - 2) * 2);
+				break;
+			case b:
+				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
+				score -= ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 5);
+				score -= 10;
+				break;
+			case r:
+				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][mirror_square[square]], positional_evaluation[opening][R][mirror_square[square]]);
+				bb = (this->state[p] & file_masks_by_square[square]);
+				if (!bb) { score -= 10; }
+				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
+				if (!bb) { score -= 15; }
+				break;
+			case q:
+				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
+				score -= ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[both]) - 9) * 3);
+				break;
+			case k:
+				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
+				score -= (bitwise::count((king_attacks[square] & this->occupied[black])) * 4);
+				bb = (this->state[p] & file_masks_by_square[square]);
+				if (!bb) { score += 10; }
+				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
+				if (!bb) { score += 15; }
+				break;
 			}
 			bitwise::clear(bitboard, square);
 		}
