@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking"
-#define ENGINE_VERSION "300"
+#define ENGINE_NAME "Viking MK31"
+#define ENGINE_VERSION "310"
 #define ENGINE_AUTHOR "Dario Pendic"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
@@ -296,8 +296,8 @@ static const int mirror_square[] = {
 };
 
 static const int material_evaluation[2][12] = {
-    { 100, 315, 335, 495, 1050, 10000, -100, -315, -335, -495, -1050, -10000 },
-    { 115, 300, 320, 520, 970, 10000, -115, -300, -320, -520, -970, -10000 }
+    { 85, 315, 335, 495, 1050, 10000, -85, -315, -335, -495, -1050, -10000 },
+    { 105, 300, 320, 520, 970, 10000, -105, -300, -320, -520, -970, -10000 }
 };
 
 static const int positional_evaluation[2][6][64] = {
