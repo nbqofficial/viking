@@ -125,12 +125,7 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 
 	for (int current_depth = 1; current_depth <= depth; ++current_depth)
 	{
-		this->nodes = 0;
-		this->fh = 0;
-		this->fhf = 0;
-
 		b.pv_line.clear();
-
 		double prob = (LOW_PROBABILITY_LIMIT * pow(10, current_depth));
 		best_score = negamax(b, current_depth, prob, -INF_SCORE, INF_SCORE, b.pv_line);
 
@@ -148,6 +143,11 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 
 		if (display_info) { b.display_info(b.pv_line, best_score, current_depth, this->nodes); }		
 	}
+	
+	this->nodes = 0;
+	this->fh = 0;
+	this->fhf = 0;
+
 	helper::clear_searchinfo();
 	return best_move;
 }

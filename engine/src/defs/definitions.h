@@ -8,8 +8,8 @@
 #include <chrono>
 
 #define ENGINE_NAME "Viking"
-#define ENGINE_VERSION "400"
-#define ENGINE_AUTHOR "MK40 Dario Pendic"
+#define ENGINE_VERSION "420"
+#define ENGINE_AUTHOR "MK42 Dario Pendic"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
