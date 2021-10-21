@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK31"
-#define ENGINE_VERSION "310"
-#define ENGINE_AUTHOR "Dario Pendic"
+#define ENGINE_NAME "Viking"
+#define ENGINE_VERSION "320"
+#define ENGINE_AUTHOR "MK32 Dario Pendic"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -296,8 +296,8 @@ static const int mirror_square[] = {
 };
 
 static const int material_evaluation[2][12] = {
-    { 85, 315, 335, 495, 1050, 10000, -85, -315, -335, -495, -1050, -10000 },
-    { 105, 300, 320, 520, 970, 10000, -105, -300, -320, -520, -970, -10000 }
+    { 82, 335, 365, 480, 1025, 10000, -82, -335, -365, -480, -1025, -10000 },
+    { 95, 285, 305, 512, 940, 10000, -95, -285, -305, -512, -940, -10000 }
 };
 
 static const int positional_evaluation[2][6][64] = {
@@ -427,7 +427,7 @@ static const int positional_evaluation[2][6][64] = {
     }
 };
 
-static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 90, 120, 160 };
+static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 75, 100, 150, 200 };
 
 static const uint64_t state_hashkey[12][64] = {
     { 

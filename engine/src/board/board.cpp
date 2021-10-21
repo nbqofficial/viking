@@ -1250,9 +1250,9 @@ int board::evaluate()
 			case R:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][square], positional_evaluation[opening][R][square]);
 				bb = (this->state[P] & file_masks_by_square[square]);
-				if (!bb) { score += 5; }
-				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
 				if (!bb) { score += 10; }
+				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
+				if (!bb) { score += 15; }
 				break;
 			case Q:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
@@ -1284,9 +1284,9 @@ int board::evaluate()
 			case r:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][mirror_square[square]], positional_evaluation[opening][R][mirror_square[square]]);
 				bb = (this->state[p] & file_masks_by_square[square]);
-				if (!bb) { score -= 5; }
-				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
 				if (!bb) { score -= 10; }
+				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
+				if (!bb) { score -= 15; }
 				break;
 			case q:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
