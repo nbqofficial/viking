@@ -1225,9 +1225,9 @@ int board::evaluate()
 			case P:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);				
 				doubled_pawns = bitwise::count(this->state[P] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 6); }
+				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 8); }
 				bb = (this->state[P] & isolated_masks_by_square[square]);
-				if (!bb) { score -= 5; }
+				if (!bb) { score -= 7; }
 				bb = (this->state[p] & white_passed_masks_by_square[square]);
 				if (!bb) { score += passed_pawn_evaluation[rank_by_square[square]]; }
 				break;
@@ -1236,7 +1236,7 @@ int board::evaluate()
 				break;
 			case B:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
-				score += ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 4);
+				score += ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 5);
 				break;
 			case R:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][square], positional_evaluation[opening][R][square]);
@@ -1259,9 +1259,9 @@ int board::evaluate()
 			case p:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
 				doubled_pawns = bitwise::count(this->state[p] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 6); }
+				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 8); }
 				bb = (this->state[p] & isolated_masks_by_square[square]);
-				if (!bb) { score += 5; }
+				if (!bb) { score += 7; }
 				bb = (this->state[P] & black_passed_masks_by_square[square]);
 				if (!bb) { score -= passed_pawn_evaluation[rank_by_square[square]]; }
 				break;
@@ -1270,7 +1270,7 @@ int board::evaluate()
 				break;
 			case b:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
-				score -= ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 4);
+				score -= ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 5);
 				break;
 			case r:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][mirror_square[square]], positional_evaluation[opening][R][mirror_square[square]]);

@@ -296,8 +296,8 @@ static const int mirror_square[] = {
 };
 
 static const int material_evaluation[2][12] = {
-    { 100, 335, 360, 495, 1060, 10000, -100, -335, -360, -495, -1060, -10000 },
-    { 115, 305, 320, 530, 980, 10000, -115, -305, -320, -530, -980, -10000 }
+    { 100, 315, 335, 495, 1050, 10000, -100, -315, -335, -495, -1050, -10000 },
+    { 115, 300, 320, 520, 970, 10000, -115, -300, -320, -520, -970, -10000 }
 };
 
 static const int positional_evaluation[2][6][64] = {
@@ -427,7 +427,7 @@ static const int positional_evaluation[2][6][64] = {
     }
 };
 
-static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 80, 100, 120 };
+static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 80, 90, 120 };
 
 static const uint64_t state_hashkey[12][64] = {
     { 
