@@ -17,6 +17,8 @@ class board
 		uint8_t history_moves[12][64];
 
 	public:
+
+		std::vector<uint32_t> pv_line;
 		
 		board();
 
@@ -78,9 +80,9 @@ class board
 
 		void generate_hashkey();
 
-		uint8_t get_piece_score(const uint8_t& piece, const uint8_t& to_square, const bool& is_capture);
+		uint8_t get_piece_score(const int& depth, const uint8_t& piece, const uint8_t promoted_piece, const uint8_t& from_square, const uint8_t& to_square, const bool& is_capture);
 
-		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal);
+		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal, const int& depth);
 
 		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves);
 

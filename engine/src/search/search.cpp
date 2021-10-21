@@ -16,7 +16,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, only_forcing, true);
+	b.generate_moves(moves, true, only_forcing, true, 0);
 	int moves_size = moves.size();
 
 	for (int i = 0; i < moves_size; ++i)
@@ -61,7 +61,7 @@ int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::
 	int score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, all_moves, true);
+	b.generate_moves(moves, true, all_moves, true, depth);
 	int moves_size = moves.size();
 
 	if (!moves_size)
@@ -125,27 +125,28 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 
 	for (int current_depth = 1; current_depth <= depth; ++current_depth)
 	{
-		std::vector<uint32_t> newpv;
 		double prob = (LOW_PROBABILITY_LIMIT * pow(10, current_depth));
-		best_score = negamax(b, current_depth, prob, -INF_SCORE, INF_SCORE, newpv);
+		best_score = negamax(b, current_depth, prob, -INF_SCORE, INF_SCORE, b.pv_line);
 
 		if (uci_info.stopped) { break; }
 
-		best_move = newpv[0];
+		best_move = b.pv_line[0];
 
 		if (display_debug)
 		{
-			b.display_pv_debug(newpv, current_depth);
+			b.display_pv_debug(b.pv_line, current_depth);
 			printf("\tprobability: %f\n", prob);
 			printf("\tevaluation: %d\n", best_score);
 			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
 		}
 
-		if (display_info) { b.display_info(newpv, best_score, current_depth, this->nodes); }
+		if (display_info) { b.display_info(b.pv_line, best_score, current_depth, this->nodes); }
+
+		b.pv_line.clear();
 
 		this->nodes = 0;
 		this->fh = 0;
-		this->fhf = 0;
+		this->fhf = 0;	
 	}
 	helper::clear_searchinfo();
 	return best_move;

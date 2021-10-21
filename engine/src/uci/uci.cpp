@@ -189,7 +189,7 @@ void uci::uci_loop()
 		else if (!strncmp(line, "displaymoves", 12))
 		{
 			std::vector<uint32_t> moves;
-			this->b.generate_moves(moves, true, all_moves, true);
+			this->b.generate_moves(moves, true, all_moves, true, 0);
 			this->b.display_moves(moves);
 		}
 	}
