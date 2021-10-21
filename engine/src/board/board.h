@@ -14,6 +14,7 @@ class board
 		uint8_t fifty_move;
 		uint64_t hashkey;
 		std::vector<board_undo> history;
+		uint8_t history_moves[12][64];
 
 	public:
 		
@@ -67,13 +68,17 @@ class board
 
 		void remove_enpassant();
 
+		void reset_history_moves();
+
+		void add_history_move(uint8_t score, const uint8_t& piece, const uint8_t& to_square);
+
 		uint8_t get_side();
 
 		void switch_side();
 
 		void generate_hashkey();
 
-		uint8_t get_piece_mvvlva(const uint8_t& piece, const uint8_t& square);
+		uint8_t get_piece_score(const uint8_t& piece, const uint8_t& to_square, const bool& is_capture);
 
 		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal);
 

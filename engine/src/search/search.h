@@ -9,11 +9,10 @@ class search
 			long long nodes = 0;
 			long long fh = 0;
 			long long fhf = 0;
-			long long null_cuttoff = 0;
 
 			int quiescence(board& b, int alpha, int beta);
 
-			int negamax(board& b, const int& depth, double prob, int alpha, int beta, std::vector<uint32_t>& pv);
+			int negamax(board& b, int depth, double prob, int alpha, int beta, std::vector<uint32_t>& pv);
 
 	public:
 

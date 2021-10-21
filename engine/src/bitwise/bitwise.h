@@ -12,9 +12,9 @@ namespace bitwise
 
 	bool check(uint64_t bitboard, const uint8_t& n);
 
-	uint16_t count(uint64_t bitboard);
+	uint8_t count(uint64_t bitboard);
 
-	int16_t lsb(uint64_t bitboard);
+	int8_t lsb(uint64_t bitboard);
 
 	void negate(uint64_t& bitboard);
 

@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "viking"
-#define ENGINE_VERSION "160"
+#define ENGINE_NAME "Viking"
+#define ENGINE_VERSION "200"
 #define ENGINE_AUTHOR "Dario Pendic"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
@@ -21,10 +21,12 @@
 #define pawn_test "rnbqkb1r/p1p3P1/5n1p/1p1pp3/2PP1P2/8/PP4PP/RNBQKBNR w KQkq - 0 8"                // pawn captures, promotions, moves
 #define wac1 "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - 0 1"				            // Qg6
 #define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "     // test position
+#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
 #define RAND_64	((uint64_t)rand() | ((uint64_t) rand() << 15) | ((uint64_t) rand() << 30) | ((uint64_t) rand() << 45) | (((uint64_t)rand() & 0xf) << 60))
 #define MAX_INPUT_BUFFER 400*6
 #define GAME_PHASE_LOWBOUND 0
 #define GAME_PHASE_HIGHBOUND 6760
+
 
 typedef struct _board_undo
 {
@@ -294,8 +296,8 @@ static const int mirror_square[] = {
 };
 
 static const int material_evaluation[2][12] = {
-    { 100, 335, 360, 495, 1100, 10000, -100, -335, -360, -495, -1100, -10000 },
-    { 115, 305, 320, 530, 1000, 10000, -115, -305, -320, -530, -1000, -10000 }
+    { 100, 335, 360, 495, 1060, 10000, -100, -335, -360, -495, -1060, -10000 },
+    { 115, 305, 320, 530, 980, 10000, -115, -305, -320, -530, -980, -10000 }
 };
 
 static const int positional_evaluation[2][6][64] = {
@@ -425,7 +427,7 @@ static const int positional_evaluation[2][6][64] = {
     }
 };
 
-static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 70, 85, 100 };
+static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 60, 80, 100, 120 };
 
 static const uint64_t state_hashkey[12][64] = {
     { 

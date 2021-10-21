@@ -43,7 +43,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	return alpha;
 }
 
-int search::negamax(board& b, const int& depth, double prob, int alpha, int beta, std::vector<uint32_t>& pv)
+int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::vector<uint32_t>& pv)
 {
 	bool found_pv = false;
 
@@ -97,6 +97,8 @@ int search::negamax(board& b, const int& depth, double prob, int alpha, int beta
 
 		if (score > alpha)
 		{
+			if (!b.get_move_capture_flag(moves[i])) { b.add_history_move(5, b.get_move_piece(moves[i]), b.get_move_to(moves[i])); }
+
 			if (score >= beta)
 			{
 				if (i == 0) { this->fhf++; }
@@ -116,6 +118,8 @@ int search::negamax(board& b, const int& depth, double prob, int alpha, int beta
 
 uint32_t search::go(board& b, const int& depth, const bool& display_info, const bool& display_debug)
 {
+	b.reset_history_moves();
+
 	uint32_t best_move = 0;
 	int best_score = -INF_SCORE;
 
@@ -135,7 +139,6 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 			printf("\tprobability: %f\n", prob);
 			printf("\tevaluation: %d\n", best_score);
 			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
-			printf("\tnull cuttoffs: %lld\n", this->null_cuttoff);
 		}
 
 		if (display_info) { b.display_info(newpv, best_score, current_depth, this->nodes); }
@@ -143,7 +146,6 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 		this->nodes = 0;
 		this->fh = 0;
 		this->fhf = 0;
-		this->null_cuttoff = 0;
 	}
 	helper::clear_searchinfo();
 	return best_move;

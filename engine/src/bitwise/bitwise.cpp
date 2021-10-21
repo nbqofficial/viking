@@ -20,7 +20,7 @@ bool bitwise::check(uint64_t bitboard, const uint8_t& n)
 	return (bitboard >> n) & 1ULL;
 }
 
-uint16_t bitwise::count(uint64_t bitboard)
+uint8_t bitwise::count(uint64_t bitboard)
 {
     uint8_t counter = 0;
 
@@ -32,7 +32,7 @@ uint16_t bitwise::count(uint64_t bitboard)
     return counter;
 }
 
-int16_t bitwise::lsb(uint64_t bitboard)
+int8_t bitwise::lsb(uint64_t bitboard)
 {
     if (bitboard) 
     { 
