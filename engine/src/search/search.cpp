@@ -43,11 +43,16 @@ int search::quiescence(board& b, int alpha, int beta)
 	return alpha;
 }
 
-int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::vector<uint32_t>& pv)
+int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move)
 {
+	int score = -INF_SCORE;
+
+	uint8_t hash_flag = tf_alpha;
+
+	int moves_searched = 0;
 	bool found_pv = false;
 
-	if (prob < LOW_PROBABILITY_LIMIT) { return quiescence(b, alpha, beta); }
+	if (depth <= 0) { return quiescence(b, alpha, beta); }
 
 	if ((this->nodes & 2047) == 0) { helper::check_up(); }
 
@@ -55,13 +60,37 @@ int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::
 
 	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
 
-	bool inchk = b.is_in_check();
-	if (inchk) { prob *= 10; }
+	int pv_node = beta - alpha > 1;
 
-	int score = -INF_SCORE;
+	score = this->transpo_table.read(b.get_hashkey(), depth, alpha, beta);
+	if (score != VALUE_UNKNOWN && !pv_node) { return score; }
+
+	bool inchk = b.is_in_check();
+	if (inchk) { depth++; }
+
+	score = -INF_SCORE;
+
+	if (null_move && !inchk && depth >= NULL_MOVE_R)
+	{
+		std::vector<uint32_t> cpv;
+		board_undo undo_board;
+		b.preserve_board(undo_board);
+		b.switch_side();
+		b.remove_enpassant();
+		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, cpv, false);
+		b.restore_board(undo_board);
+
+		if (score >= beta)
+		{
+			this->null_cuttoff++;
+			return beta;
+		}
+	}
+
+	score = -INF_SCORE;
 
 	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, all_moves, true, depth);
+	b.generate_moves(moves, true, all_moves, true, depth - 1);
 	int moves_size = moves.size();
 
 	if (!moves_size)
@@ -79,21 +108,48 @@ int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::
 
 		if (found_pv)
 		{
-			score = -negamax(b, depth - 1, (prob / moves_size), -alpha - 1, -alpha, childpv);
+			score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
 		
 			if ((score > alpha) && (score < beta))
 			{
-				score = -negamax(b, depth - 1, (prob / moves_size), -beta, -alpha, childpv);
+				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
 			}
 		}
 		else
 		{
-			score = -negamax(b, depth - 1, (prob / moves_size), -beta, -alpha, childpv);
+			if (!moves_searched)
+			{
+				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
+			}
+			else
+			{
+				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !b.get_move_capture_flag(moves[i]) && !b.get_move_promoted_piece(moves[i]))
+				{
+					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true);
+					lmr_count++;
+				}
+				else
+				{
+					score = alpha + 1;
+				}
+
+				if (score > alpha)
+				{
+					score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
+				
+					if ((score > alpha) && (score < beta))
+					{
+						score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
+					}
+				}			
+			}		
 		}
 		
 		b.restore_board(undo_board);
 
 		if (uci_info.stopped) { break; }
+
+		moves_searched++;
 
 		if (score > alpha)
 		{
@@ -101,6 +157,10 @@ int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::
 
 			if (score >= beta)
 			{
+				this->transpo_table.write(b.get_hashkey(), depth, tf_beta, beta);
+
+				if (!b.get_move_capture_flag(moves[i])) { b.add_killer_move(moves[i], depth - 1); }
+
 				if (i == 0) { this->fhf++; }
 				this->fh++;
 				return beta;
@@ -113,12 +173,25 @@ int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::
 			std::copy(childpv.begin(), childpv.end(), std::back_inserter(pv));
 		}
 	}
+
+	this->transpo_table.write(b.get_hashkey(), depth, hash_flag, alpha);
+
 	return alpha;
+}
+
+search::search()
+{
+	if (this->transpo_table.allocate(32)) { this->transpo_table.reset(); }
+}
+
+search::~search()
+{
+	this->transpo_table.deallocate();
 }
 
 uint32_t search::go(board& b, const int& depth, const bool& display_info, const bool& display_debug)
 {
-	b.reset_history_moves();
+	b.reset_killer_and_history_moves();
 
 	uint32_t best_move = 0;
 	int best_score = -INF_SCORE;
@@ -126,8 +199,8 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 	for (int current_depth = 1; current_depth <= depth; ++current_depth)
 	{
 		b.pv_line.clear();
-		double prob = (LOW_PROBABILITY_LIMIT * pow(10, current_depth));
-		best_score = negamax(b, current_depth, prob, -INF_SCORE, INF_SCORE, b.pv_line);
+
+		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, b.pv_line, true);
 
 		if (uci_info.stopped) { break; }
 
@@ -136,17 +209,19 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 		if (display_debug)
 		{
 			b.display_pv_debug(b.pv_line, current_depth);
-			printf("\tprobability: %f\n", prob);
 			printf("\tevaluation: %d\n", best_score);
-			printf("\tmove ordering: %lld/%lld [%lld]\n", this->fhf, this->fh, this->nodes);
+			printf("\tmove ordering: %f %lld/%lld [%lld]\n", (float)(((float)this->fhf / (float)this->fh) * 100.0), this->fhf, this->fh, this->nodes);
+			printf("\tnull cuttoffs: %lld\n", this->null_cuttoff);
+			printf("\tlate move reductions: %lld\n", this->lmr_count);
 		}
 
-		if (display_info) { b.display_info(b.pv_line, best_score, current_depth, this->nodes); }		
+		if (display_info) { b.display_info(b.pv_line, best_score, current_depth, this->nodes); }	
 	}
 	
 	this->nodes = 0;
 	this->fh = 0;
 	this->fhf = 0;
+	this->null_cuttoff = 0;
 
 	helper::clear_searchinfo();
 	return best_move;

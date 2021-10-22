@@ -21,5 +21,7 @@ class uci
 
 		void position(char* line_in);
 
+		void parse_perft(char* line_in);
+
 		void uci_loop();
 };

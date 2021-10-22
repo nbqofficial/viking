@@ -397,9 +397,16 @@ void board::remove_enpassant()
 	this->enpassant = no_sq;
 }
 
-void board::reset_history_moves()
+void board::reset_killer_and_history_moves()
 {
+	memset(this->killer_moves, 0, sizeof(this->killer_moves));
 	memset(this->history_moves, 0, sizeof(this->history_moves));
+}
+
+void board::add_killer_move(uint32_t move, const int& depth)
+{
+	this->killer_moves[1][depth] = this->killer_moves[0][depth];
+	this->killer_moves[0][depth] = move;
 }
 
 void board::add_history_move(uint8_t score, const uint8_t& piece, const uint8_t& to_square)
@@ -442,14 +449,16 @@ void board::generate_hashkey()
 	if (this->side == black) { this->hashkey ^= side_hashkey; }
 }
 
+uint64_t board::get_hashkey()
+{
+	return this->hashkey;
+}
+
 uint8_t board::get_piece_score(const int& depth, const uint8_t& piece, const uint8_t promoted_piece, const uint8_t& from_square, const uint8_t& to_square, const bool& is_capture)
 {
-	if (depth)
+	if (this->pv_line.size() && get_move_from(this->pv_line[depth]) == from_square && get_move_to(this->pv_line[depth]) == to_square && get_move_promoted_piece(this->pv_line[depth]) == promoted_piece)
 	{
-		if (this->pv_line.size() && get_move_from(this->pv_line[depth - 1]) == from_square && get_move_to(this->pv_line[depth - 1]) == to_square && get_move_promoted_piece(this->pv_line[depth - 1]) == promoted_piece)
-		{
-			return 100;
-		}
+		return 100;
 	}
 	if (is_capture)
 	{
@@ -461,9 +470,19 @@ uint8_t board::get_piece_score(const int& depth, const uint8_t& piece, const uin
 	}
 	else
 	{
-		return this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+		if (get_move_from(this->killer_moves[0][depth]) == from_square && get_move_to(this->killer_moves[0][depth]) == to_square && get_move_promoted_piece(this->killer_moves[0][depth]) == promoted_piece)
+		{
+			return 9;
+		}
+		else if (get_move_from(this->killer_moves[1][depth]) == from_square && get_move_to(this->killer_moves[1][depth]) == to_square && get_move_promoted_piece(this->killer_moves[1][depth]) == promoted_piece)
+		{
+			return 8;
+		}
+		else
+		{
+			return this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+		}
 	}
-	
 	return 0;
 }
 

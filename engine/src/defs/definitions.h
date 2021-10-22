@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK47"
-#define ENGINE_VERSION "470"
-#define ENGINE_AUTHOR "Dario Pendic (MK47)"
+#define ENGINE_NAME "Viking MK55"
+#define ENGINE_VERSION "550"
+#define ENGINE_AUTHOR "Dario Pendic (MK55)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -26,6 +26,7 @@
 #define MAX_INPUT_BUFFER 400*6
 #define GAME_PHASE_LOWBOUND 0
 #define GAME_PHASE_HIGHBOUND 6760
+#define VALUE_UNKNOWN 100000
 
 
 typedef struct _board_undo
@@ -566,7 +567,9 @@ static const int MAX_DEPTH = 64;
 
 static const int NULL_MOVE_R = 3;
 
-static const double LOW_PROBABILITY_LIMIT = 0.000000001;
+static const int LMR_MOVE_LIMIT = 4;
+
+static const int LMR_DEPTH_LIMIT = 3;
 
 
 // move representation in binary                var                 hex

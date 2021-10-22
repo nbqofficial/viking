@@ -130,6 +130,20 @@ void uci::position(char* line_in)
 	}
 }
 
+void uci::parse_perft(char* line_in)
+{
+	line_in += 6;
+	char* ptr = line_in;
+	if (ptr == NULL)
+	{
+		this->pf.test(this->b, 5);
+	}
+	else
+	{
+		this->pf.test(this->b, atoi(ptr));
+	}
+}
+
 void uci::uci_loop()
 {
 	setvbuf(stdin, NULL, _IONBF, BUFSIZ);
@@ -180,7 +194,7 @@ void uci::uci_loop()
 		}
 		else if (!strncmp(line, "perft", 5))
 		{
-			this->pf.test(this->b, 5);
+			parse_perft(line);
 		}
 		else if (!strncmp(line, "displayboard", 12))
 		{

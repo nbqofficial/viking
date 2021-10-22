@@ -22,6 +22,12 @@
     <Filter Include="src\search">
       <UniqueIdentifier>{3bdf0ab6-3a1a-4e39-8cd4-c5f1eadb5539}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\uci">
+      <UniqueIdentifier>{47fa856c-35b2-44ca-ae77-20aafcb01ca3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\transpo">
+      <UniqueIdentifier>{dab1ef84-b3c6-441b-814a-fdb549254dc4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -42,7 +48,12 @@
     <ClCompile Include="src\search\search.cpp">
       <Filter>src\search</Filter>
     </ClCompile>
-    <ClCompile Include="src\uci\uci.cpp" />
+    <ClCompile Include="src\uci\uci.cpp">
+      <Filter>src\uci</Filter>
+    </ClCompile>
+    <ClCompile Include="src\transpo\transpo.cpp">
+      <Filter>src\transpo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -63,6 +74,11 @@
     <ClInclude Include="src\search\search.h">
       <Filter>src\search</Filter>
     </ClInclude>
-    <ClInclude Include="src\uci\uci.h" />
+    <ClInclude Include="src\uci\uci.h">
+      <Filter>src\uci</Filter>
+    </ClInclude>
+    <ClInclude Include="src\transpo\transpo.h">
+      <Filter>src\transpo</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

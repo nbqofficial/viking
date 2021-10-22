@@ -146,6 +146,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\perft\perft.cpp" />
     <ClCompile Include="src\search\search.cpp" />
+    <ClCompile Include="src\transpo\transpo.cpp" />
     <ClCompile Include="src\uci\uci.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="src\helper\helper.h" />
     <ClInclude Include="src\perft\perft.h" />
     <ClInclude Include="src\search\search.h" />
+    <ClInclude Include="src\transpo\transpo.h" />
     <ClInclude Include="src\uci\uci.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
