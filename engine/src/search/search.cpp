@@ -49,7 +49,6 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	uint8_t hash_flag = tf_alpha;
 
-	int moves_searched = 0;
 	bool found_pv = false;
 
 	if (depth <= 0) { return quiescence(b, alpha, beta); }
@@ -117,42 +116,17 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		}
 		else
 		{
-			if (!moves_searched)
-			{
-				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
-			}
-			else
-			{
-				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !b.get_move_capture_flag(moves[i]) && !b.get_move_promoted_piece(moves[i]))
-				{
-					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true);
-					lmr_count++;
-				}
-				else
-				{
-					score = alpha + 1;
-				}
-
-				if (score > alpha)
-				{
-					score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
-				
-					if ((score > alpha) && (score < beta))
-					{
-						score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
-					}
-				}			
-			}		
+			score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);	
 		}
 		
 		b.restore_board(undo_board);
 
 		if (uci_info.stopped) { break; }
 
-		moves_searched++;
-
 		if (score > alpha)
 		{
+			hash_flag = tf_exact;
+
 			if (!b.get_move_capture_flag(moves[i])) { b.add_history_move(5, b.get_move_piece(moves[i]), b.get_move_to(moves[i])); }
 
 			if (score >= beta)

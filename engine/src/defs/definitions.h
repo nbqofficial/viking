@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK55"
-#define ENGINE_VERSION "550"
-#define ENGINE_AUTHOR "Dario Pendic (MK55)"
+#define ENGINE_NAME "Viking MK56"
+#define ENGINE_VERSION "560"
+#define ENGINE_AUTHOR "Dario Pendic (MK56)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -566,11 +566,6 @@ static const int MATE_SCORE = 300000;
 static const int MAX_DEPTH = 64;
 
 static const int NULL_MOVE_R = 3;
-
-static const int LMR_MOVE_LIMIT = 4;
-
-static const int LMR_DEPTH_LIMIT = 3;
-
 
 // move representation in binary                var                 hex
 
