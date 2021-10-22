@@ -12,6 +12,7 @@ class uci
 		board b;
 
 		bool debug = false;
+		bool display_after_move = false;
 
 	public:
 
@@ -30,6 +31,8 @@ class uci
 		void parse_displayboard();
 
 		void parse_debug();
+
+		void parse_displayaftermove();
 
 		void uci_loop();
 };

@@ -82,7 +82,13 @@ void uci::go(char* line_in)
 
 	uint32_t best_move = this->sc.go(this->b, uci_info.depth, true, this->debug);
 	std::string move_str = this->b.move_to_string(best_move);
-	b.make_move(best_move, true);
+	this->b.make_move(best_move, true);
+
+	if (this->display_after_move)
+	{
+		system("cls");
+		this->b.display();
+	}
 
 	printf("bestmove %s\n", move_str.c_str());
 }
@@ -169,6 +175,19 @@ void uci::parse_debug()
 	}
 }
 
+void uci::parse_displayaftermove()
+{
+	this->display_after_move = !this->display_after_move;
+	if (this->display_after_move)
+	{
+		printf("\t display after move on\n");
+	}
+	else
+	{
+		printf("\t display after move off\n");
+	}
+}
+
 void uci::uci_loop()
 {
 	setvbuf(stdin, NULL, _IONBF, BUFSIZ);
@@ -228,6 +247,10 @@ void uci::uci_loop()
 		else if (!strncmp(line, "displaymoves", 12))
 		{
 			parse_displaymoves();
+		}
+		else if (!strncmp(line, "displayaftermove", 16))
+		{
+			parse_displayaftermove();
 		}
 		else if (!strncmp(line, "cls", 3))
 		{
