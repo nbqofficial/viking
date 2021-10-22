@@ -183,7 +183,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 search::search()
 {
-	if (this->transpo_table.allocate(32)) { this->transpo_table.reset(); }
+	if (this->transpo_table.allocate(128)) { this->transpo_table.reset(); }
 }
 
 search::~search()

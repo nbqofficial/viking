@@ -80,7 +80,7 @@ void uci::go(char* line_in)
 		uci_info.depth = MAX_DEPTH;
 	}
 
-	uint32_t best_move = this->sc.go(this->b, uci_info.depth, true, false);
+	uint32_t best_move = this->sc.go(this->b, uci_info.depth, true, this->debug);
 	std::string move_str = this->b.move_to_string(best_move);
 	b.make_move(best_move, true);
 
@@ -144,6 +144,31 @@ void uci::parse_perft(char* line_in)
 	}
 }
 
+void uci::parse_displaymoves()
+{
+	std::vector<uint32_t> moves;
+	this->b.generate_moves(moves, true, all_moves, true, 0);
+	this->b.display_moves(moves);
+}
+
+void uci::parse_displayboard()
+{
+	this->b.display();
+}
+
+void uci::parse_debug()
+{
+	this->debug = !this->debug;
+	if (this->debug)
+	{
+		printf("\tdebug on\n");
+	}
+	else
+	{
+		printf("\tdebug off\n");
+	}
+}
+
 void uci::uci_loop()
 {
 	setvbuf(stdin, NULL, _IONBF, BUFSIZ);
@@ -198,13 +223,19 @@ void uci::uci_loop()
 		}
 		else if (!strncmp(line, "displayboard", 12))
 		{
-			this->b.display();
+			parse_displayboard();
 		}
 		else if (!strncmp(line, "displaymoves", 12))
 		{
-			std::vector<uint32_t> moves;
-			this->b.generate_moves(moves, true, all_moves, true, 0);
-			this->b.display_moves(moves);
+			parse_displaymoves();
+		}
+		else if (!strncmp(line, "cls", 4))
+		{
+			system("cls");
+		}
+		else if (!strncmp(line, "debug", 6))
+		{
+			parse_debug();
 		}
 	}
 }

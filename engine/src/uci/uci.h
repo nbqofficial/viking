@@ -11,6 +11,8 @@ class uci
 		search sc;
 		board b;
 
+		bool debug = false;
+
 	public:
 
 		uci();
@@ -22,6 +24,12 @@ class uci
 		void position(char* line_in);
 
 		void parse_perft(char* line_in);
+
+		void parse_displaymoves();
+
+		void parse_displayboard();
+
+		void parse_debug();
 
 		void uci_loop();
 };
