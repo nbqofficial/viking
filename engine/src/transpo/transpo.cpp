@@ -52,12 +52,9 @@ int transpo::read(const uint64_t& hashkey, const int& depth, const int& alpha, c
 
 	if (entry->hashkey == hashkey)
 	{
-		if (entry->depth >= depth)
+		if (entry->depth == depth)
 		{
 			int score = entry->score;
-
-			if (score < -MATE_SCORE) { score += depth; }
-			if (score > MATE_SCORE) { score -= depth; }
 
 			if (entry->flag == tf_exact) { return score; }
 
@@ -75,9 +72,6 @@ bool transpo::write(uint64_t hashkey, int depth, uint8_t flag, int score)
 	ptransposition_table entry = &this->tt[hashkey % this->entries];
 
 	if (!entry) { return false; }
-
-	if (score < -MATE_SCORE) { score -= depth; }
-	if (score > MATE_SCORE) { score += depth; }
 
 	entry->hashkey = hashkey;
 	entry->depth = depth;
