@@ -76,6 +76,8 @@ class board
 
 		uint8_t get_side();
 
+		uint8_t get_fifty_move();
+
 		void switch_side();
 
 		void generate_hashkey();

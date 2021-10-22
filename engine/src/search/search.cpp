@@ -6,7 +6,7 @@ int search::quiescence(board& b, int alpha, int beta)
 
 	this->nodes++;
 
-	if (b.is_repetition()) { return 0; }
+	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
 
 	int score = b.evaluate();
 
@@ -53,7 +53,7 @@ int search::negamax(board& b, int depth, double prob, int alpha, int beta, std::
 
 	this->nodes++;
 
-	if (b.is_repetition()) { return 0; }
+	if (b.is_repetition() || b.get_fifty_move() >= 100) { return 0; }
 
 	bool inchk = b.is_in_check();
 	if (inchk) { prob *= 10; }
