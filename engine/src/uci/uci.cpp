@@ -229,11 +229,11 @@ void uci::uci_loop()
 		{
 			parse_displaymoves();
 		}
-		else if (!strncmp(line, "cls", 4))
+		else if (!strncmp(line, "cls", 3))
 		{
 			system("cls");
 		}
-		else if (!strncmp(line, "debug", 6))
+		else if (!strncmp(line, "debug", 5))
 		{
 			parse_debug();
 		}
