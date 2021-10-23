@@ -11,6 +11,7 @@ class search
 			long long fhf = 0;
 			long long null_cuttoff = 0;
 			long long lmr_count = 0;
+			long long transpo_cuttoff = 0;
 			transpo transpo_table;
 
 			int quiescence(board& b, int alpha, int beta);

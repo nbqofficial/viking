@@ -66,7 +66,11 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	if (inchk) { depth++; }
 
 	score = this->transpo_table.read(b.get_hashkey(), depth, alpha, beta);
-	if (score != VALUE_UNKNOWN && !pv_node) { return score; }
+	if (score != VALUE_UNKNOWN && !pv_node)
+	{ 
+		this->transpo_cuttoff++;
+		return score; 
+	}
 
 	score = -INF_SCORE;
 
@@ -183,7 +187,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 search::search()
 {
-	if (this->transpo_table.allocate(128)) { this->transpo_table.reset(); }
+	if (this->transpo_table.allocate(256)) { this->transpo_table.reset(); }
 }
 
 search::~search()
@@ -215,6 +219,7 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 			printf("\tmove ordering: %f %lld/%lld [%lld]\n", (float)(((float)this->fhf / (float)this->fh) * 100.0), this->fhf, this->fh, this->nodes);
 			printf("\tnull cuttoffs: %lld\n", this->null_cuttoff);
 			printf("\tlate move reductions: %lld\n", this->lmr_count);
+			printf("\ttransposition cuttoffs: %lld\n", this->transpo_cuttoff);
 		}
 
 		if (display_info) { b.display_info(b.pv_line, best_score, current_depth, this->nodes); }	
@@ -224,6 +229,8 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 	this->fh = 0;
 	this->fhf = 0;
 	this->null_cuttoff = 0;
+	this->lmr_count = 0;
+	this->transpo_cuttoff = 0;
 
 	helper::clear_searchinfo();
 	return best_move;
