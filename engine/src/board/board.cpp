@@ -1278,6 +1278,27 @@ int board::evaluate()
 	int game_phase_score = get_game_phase_score();
 	uint64_t bb = 0ULL;
 
+	int white_color_complex = bitwise::count(this->state[P] & light_squares) - bitwise::count(this->state[P] & dark_squares);
+	int black_color_complex = bitwise::count(this->state[p] & light_squares) - bitwise::count(this->state[p] & dark_squares);
+	
+	if (white_color_complex > 0)
+	{
+		if (!(this->state[B] & dark_squares)) { score -= (abs(white_color_complex) * 5); }
+	}
+	else if (white_color_complex < 0)
+	{
+		if (!(this->state[B] & light_squares)) { score -= (abs(white_color_complex) * 5); }
+	}
+
+	if (black_color_complex > 0)
+	{
+		if (!(this->state[b] & dark_squares)) { score += (abs(black_color_complex) * 5); }
+	}
+	else if (black_color_complex < 0)
+	{
+		if (!(this->state[b] & light_squares)) { score += (abs(black_color_complex) * 5); }
+	}
+
 	for (uint8_t piece = P; piece <= k; ++piece)
 	{
 		uint64_t bitboard = this->state[piece];
@@ -1293,7 +1314,7 @@ int board::evaluate()
 			case P:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][square], positional_evaluation[opening][P][square]);				
 				doubled_pawns = bitwise::count(this->state[P] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 20); }
+				if (doubled_pawns > 1) { score -= ((doubled_pawns - 1) * 15); }
 				bb = (this->state[P] & isolated_masks_by_square[square]);
 				if (!bb) { score -= 10; }
 				bb = (this->state[p] & white_passed_masks_by_square[square]);
@@ -1328,7 +1349,7 @@ int board::evaluate()
 			case p:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
 				doubled_pawns = bitwise::count(this->state[p] & file_masks_by_square[square]);
-				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 20); }
+				if (doubled_pawns > 1) { score += ((doubled_pawns - 1) * 15); }
 				bb = (this->state[p] & isolated_masks_by_square[square]);
 				if (!bb) { score += 10; }
 				bb = (this->state[P] & black_passed_masks_by_square[square]);
