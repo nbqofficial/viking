@@ -1278,25 +1278,43 @@ int board::evaluate()
 	int game_phase_score = get_game_phase_score();
 	uint64_t bb = 0ULL;
 
+	int closed_position_count = bitwise::count((this->state[P] | this->state[p]));
+
 	int white_color_complex = bitwise::count(this->state[P] & light_squares) - bitwise::count(this->state[P] & dark_squares);
 	int black_color_complex = bitwise::count(this->state[p] & light_squares) - bitwise::count(this->state[p] & dark_squares);
 	
-	if (white_color_complex > 0)
+	if (white_color_complex > 0) // dark square weaknesses for white
 	{
-		if (!(this->state[B] & dark_squares)) { score -= (abs(white_color_complex) * 5); }
+		if (!(this->state[B] & dark_squares)) 
+		{ 
+			score -= (abs(white_color_complex) * 3);
+			if ((this->state[b] & dark_squares)) { score -= (abs(white_color_complex) * 4); }
+		}
 	}
-	else if (white_color_complex < 0)
+	else if (white_color_complex < 0) // light square weaknesses for white
 	{
-		if (!(this->state[B] & light_squares)) { score -= (abs(white_color_complex) * 5); }
+		if (!(this->state[B] & light_squares)) 
+		{ 
+			score -= (abs(white_color_complex) * 3); 
+			if ((this->state[b] & light_squares)) { score -= (abs(white_color_complex) * 4); }
+		}
 	}
 
-	if (black_color_complex > 0)
+	if (black_color_complex > 0) // dark square weaknesses for black
 	{
-		if (!(this->state[b] & dark_squares)) { score += (abs(black_color_complex) * 5); }
+		if (!(this->state[b] & dark_squares))
+		{ 
+			score += (abs(black_color_complex) * 3);
+			if ((this->state[B] & dark_squares)) { score += (abs(black_color_complex) * 4); }
+		}
 	}
-	else if (black_color_complex < 0)
+	else if (black_color_complex < 0) // light square weaknesses for black
 	{
-		if (!(this->state[b] & light_squares)) { score += (abs(black_color_complex) * 5); }
+		if (!(this->state[b] & light_squares))
+		{ 
+			score += (abs(black_color_complex) * 3);
+			if ((this->state[B] & light_squares)) { score += (abs(black_color_complex) * 4); }
+		}
 	}
 
 	for (uint8_t piece = P; piece <= k; ++piece)
@@ -1323,6 +1341,7 @@ int board::evaluate()
 			case N:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
 				score += bitwise::count(knight_attacks[square] & ~this->occupied[white]);
+				if (closed_position_count > 12) { score += 10; }
 				break;
 			case B:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
@@ -1358,6 +1377,7 @@ int board::evaluate()
 			case n:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
 				score -= bitwise::count(knight_attacks[square] & ~this->occupied[black]);
+				if (closed_position_count > 12) { score -= 10; }
 				break;
 			case b:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
