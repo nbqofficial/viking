@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK130"
-#define ENGINE_VERSION "1300"
-#define ENGINE_AUTHOR "Dario Pendic (MK130)"
+#define ENGINE_NAME "Viking MK140"
+#define ENGINE_VERSION "1400"
+#define ENGINE_AUTHOR "Dario Pendic (MK140)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -310,7 +310,7 @@ static const int positional_evaluation[2][6][64] = {
             -14,  13,   6,  21,  23,  12, 17, -23,
             -27,  -2,  -5,  12,  17,   6, 10, -25,
             -26,  -4,  -4, -10,   3,   3, 33, -12,
-            -35,  -1, -20, -23, -30,  24, 38, -22,
+            -35,  -1, -20, -23, -15,  24, 38, -22,
              0,   0,   0,   0,   0,   0,  0,   0
         },
         {

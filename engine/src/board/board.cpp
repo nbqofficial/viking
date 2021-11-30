@@ -1292,7 +1292,7 @@ int board::evaluate()
 		if (!(this->state[B] & dark_squares)) 
 		{ 
 			score -= (abs(white_color_complex) * 3);
-			if ((this->state[b] & dark_squares)) { score -= (abs(white_color_complex) * 4); }
+			if ((this->state[b] & dark_squares)) { score -= (abs(white_color_complex) * 2); }
 		}
 	}
 	else if (white_color_complex < 0)
@@ -1300,7 +1300,7 @@ int board::evaluate()
 		if (!(this->state[B] & light_squares)) 
 		{ 
 			score -= (abs(white_color_complex) * 3); 
-			if ((this->state[b] & light_squares)) { score -= (abs(white_color_complex) * 4); }
+			if ((this->state[b] & light_squares)) { score -= (abs(white_color_complex) * 2); }
 		}
 	}
 
@@ -1309,7 +1309,7 @@ int board::evaluate()
 		if (!(this->state[b] & dark_squares))
 		{ 
 			score += (abs(black_color_complex) * 3);
-			if ((this->state[B] & dark_squares)) { score += (abs(black_color_complex) * 4); }
+			if ((this->state[B] & dark_squares)) { score += (abs(black_color_complex) * 2); }
 		}
 	}
 	else if (black_color_complex < 0)
@@ -1317,7 +1317,7 @@ int board::evaluate()
 		if (!(this->state[b] & light_squares))
 		{ 
 			score += (abs(black_color_complex) * 3);
-			if ((this->state[B] & light_squares)) { score += (abs(black_color_complex) * 4); }
+			if ((this->state[B] & light_squares)) { score += (abs(black_color_complex) * 2); }
 		}
 	}
 
