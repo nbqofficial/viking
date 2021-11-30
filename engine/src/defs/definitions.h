@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK80"
-#define ENGINE_VERSION "800"
-#define ENGINE_AUTHOR "Dario Pendic (MK80)"
+#define ENGINE_NAME "Viking MK130"
+#define ENGINE_VERSION "1300"
+#define ENGINE_AUTHOR "Dario Pendic (MK130)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening

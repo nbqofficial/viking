@@ -312,6 +312,7 @@ void board::display_pv_debug(const std::vector<uint32_t>& pv, const int& depth)
 void board::display_info(const std::vector<uint32_t>& pv, const int& score, const int& depth, const long long& nodes)
 {
 	printf("info score cp %d depth %d nodes %lld pv ", score, depth, nodes);
+
 	for (int i = 0; i < pv.size(); ++i)
 	{
 		uint8_t from = get_move_from(pv[i]);
@@ -1278,12 +1279,15 @@ int board::evaluate()
 	int game_phase_score = get_game_phase_score();
 	uint64_t bb = 0ULL;
 
+	int center_control = bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center);
+	score += (center_control * 2);
+
 	int closed_position_count = bitwise::count((this->state[P] | this->state[p]));
 
 	int white_color_complex = bitwise::count(this->state[P] & light_squares) - bitwise::count(this->state[P] & dark_squares);
 	int black_color_complex = bitwise::count(this->state[p] & light_squares) - bitwise::count(this->state[p] & dark_squares);
 	
-	if (white_color_complex > 0) // dark square weaknesses for white
+	if (white_color_complex > 0)
 	{
 		if (!(this->state[B] & dark_squares)) 
 		{ 
@@ -1291,7 +1295,7 @@ int board::evaluate()
 			if ((this->state[b] & dark_squares)) { score -= (abs(white_color_complex) * 4); }
 		}
 	}
-	else if (white_color_complex < 0) // light square weaknesses for white
+	else if (white_color_complex < 0)
 	{
 		if (!(this->state[B] & light_squares)) 
 		{ 
@@ -1300,7 +1304,7 @@ int board::evaluate()
 		}
 	}
 
-	if (black_color_complex > 0) // dark square weaknesses for black
+	if (black_color_complex > 0)
 	{
 		if (!(this->state[b] & dark_squares))
 		{ 
@@ -1308,7 +1312,7 @@ int board::evaluate()
 			if ((this->state[B] & dark_squares)) { score += (abs(black_color_complex) * 4); }
 		}
 	}
-	else if (black_color_complex < 0) // light square weaknesses for black
+	else if (black_color_complex < 0)
 	{
 		if (!(this->state[b] & light_squares))
 		{ 
