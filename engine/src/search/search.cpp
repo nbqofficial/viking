@@ -113,21 +113,8 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	if (selection_factoring && moves_list_size > 5)
 	{
 		int best_selection_moves_size = moves_list_size * BEST_SELECTION_FACTOR;
-		int random_selection_moves_size = moves_list_size * RANDOM_SELECTION_FACTOR;
-		int moves_reserve_size = best_selection_moves_size + random_selection_moves_size;
-
-		moves.reserve(moves_reserve_size);
-
-		for (int b = 0; b < best_selection_moves_size; b++)
-		{ 
-			moves.emplace_back(moves_list.at(b));
-		}
-
-		for (int r = 0; r < random_selection_moves_size; r++)
-		{
-			int random_move = helper::get_random_int(best_selection_moves_size, moves_list_size);
-			if ((std::find(moves.begin(), moves.end(), moves_list.at(random_move)) == moves.end())) { moves.emplace_back(moves_list.at(random_move)); }
-		}
+		moves.reserve(best_selection_moves_size);
+		for (int b = 0; b < best_selection_moves_size; b++) { moves.emplace_back(moves_list.at(b)); }
 	}
 	else
 	{

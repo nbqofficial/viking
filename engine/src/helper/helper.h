@@ -24,6 +24,4 @@ namespace helper
 	void clear_searchinfo();
 
 	void check_up();
-
-	int get_random_int(int min, int max);
 }
