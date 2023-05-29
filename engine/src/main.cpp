@@ -2,6 +2,8 @@
 
 int main()
 {
+	srand(time(0));
+
 	uci u;
 	u.uci_loop();
 
