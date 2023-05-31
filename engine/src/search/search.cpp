@@ -1,51 +1,12 @@
 #include "search.h"
 
-int search::random_rollout(board& b, int depth, int alpha, int beta)
-{
-	if (depth <= 0) { return b.evaluate(); }
-
-	if ((this->nodes & 2047) == 0) { helper::check_up(); }
-
-	this->nodes++;
-
-	int score = -INF_SCORE;
-
-	std::vector<uint32_t> moves;
-	b.generate_moves(moves, true, all_moves, true, depth - 1);
-	int moves_size = moves.size();
-
-	if (!moves_size)
-	{
-		if (b.is_in_check()) { return -MATE_SCORE + (MAX_DEPTH - depth); }
-		else { return 0; }
-	}
-
-	board_undo undo_board;
-	b.preserve_board(undo_board);
-	b.make_move(moves[helper::get_random_int(0, moves_size)], false);
-	score = -random_rollout(b, depth - 1, -beta, -alpha);
-	b.restore_board(undo_board);
-
-	if (uci_info.stopped) { return alpha; }
-
-	if (score > alpha)
-	{
-		if (score >= beta) { return beta; }
-		alpha = score;
-	}
-
-	return alpha;
-}
-
 int search::quiescence(board& b, int alpha, int beta)
 {
 	if ((this->nodes & 2047) == 0) { helper::check_up(); }
 
 	this->nodes++;
 
-	int random_score = random_rollout(b, 5, -beta, -alpha);
-
-	int score = b.evaluate() + (random_score / 10);
+	int score = b.evaluate();
 
 	if (score >= beta) { return beta; }
 	if (score > alpha) { alpha = score; }
