@@ -1,12 +1,51 @@
 #include "search.h"
 
+int search::random_rollout(board& b, int depth, int alpha, int beta)
+{
+	if (depth <= 0) { return b.evaluate(); }
+
+	if ((this->nodes & 2047) == 0) { helper::check_up(); }
+
+	this->nodes++;
+
+	int score = -INF_SCORE;
+
+	std::vector<uint32_t> moves;
+	b.generate_moves(moves, true, all_moves, true, depth - 1);
+	int moves_size = moves.size();
+
+	if (!moves_size)
+	{
+		if (b.is_in_check()) { return -MATE_SCORE + (MAX_DEPTH - depth); }
+		else { return 0; }
+	}
+
+	board_undo undo_board;
+	b.preserve_board(undo_board);
+	b.make_move(moves[helper::get_random_int(0, moves_size)], false);
+	score = -random_rollout(b, depth - 1, -beta, -alpha);
+	b.restore_board(undo_board);
+
+	if (uci_info.stopped) { return alpha; }
+
+	if (score > alpha)
+	{
+		if (score >= beta) { return beta; }
+		alpha = score;
+	}
+
+	return alpha;
+}
+
 int search::quiescence(board& b, int alpha, int beta)
 {
 	if ((this->nodes & 2047) == 0) { helper::check_up(); }
 
 	this->nodes++;
 
-	int score = b.evaluate();
+	int random_score = random_rollout(b, 5, -beta, -alpha);
+
+	int score = b.evaluate() + (random_score / 10);
 
 	if (score >= beta) { return beta; }
 	if (score > alpha) { alpha = score; }
@@ -48,7 +87,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	return alpha;
 }
 
-int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move, const bool& selection_factoring)
+int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move)
 {
 	int score = -INF_SCORE;
 
@@ -84,7 +123,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		b.preserve_board(undo_board);
 		b.switch_side();
 		b.remove_enpassant();
-		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, cpv, false, false);
+		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, cpv, false);
 		b.restore_board(undo_board);
 
 		if (score >= beta)
@@ -96,33 +135,17 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	score = -INF_SCORE;
 
-	std::vector<uint32_t> moves_list;
-	b.generate_moves(moves_list, true, all_moves, true, depth - 1);
-	int moves_list_size = moves_list.size();
+	std::vector<uint32_t> moves;
+	b.generate_moves(moves, true, all_moves, true, depth - 1);
+	int moves_size = moves.size();
 
-	if (!moves_list_size)
+	if (!moves_size)
 	{
 		if (inchk) { return -MATE_SCORE + (MAX_DEPTH - depth); }
 		else { return 0; }
 	}
 
-	if (moves_list_size == 1) { return score; }
-
-	std::vector<uint32_t> moves;
-
-	if (selection_factoring && moves_list_size > 5)
-	{
-		int best_selection_moves_size = moves_list_size * BEST_SELECTION_FACTOR;
-		moves.reserve(best_selection_moves_size);
-		for (int b = 0; b < best_selection_moves_size; b++) { moves.emplace_back(moves_list.at(b)); }
-	}
-	else
-	{
-		moves.reserve(moves_list_size);
-		moves.assign(moves_list.begin(), moves_list.end());
-	}
-
-	int moves_size = moves.size();
+	if (moves_size == 1) { return score; }
 
 	for (int i = 0; i < moves_size; ++i)
 	{
@@ -139,24 +162,24 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 		if (found_pv)
 		{
-			score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true, true);
+			score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
 		
 			if ((score > alpha) && (score < beta))
 			{
-				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true, true);
+				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
 			}
 		}
 		else
 		{
 			if (!moves_searched)
 			{
-				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true, true);
+				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
 			}
 			else
 			{
 				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !b.get_move_capture_flag(moves[i]) && !b.get_move_promoted_piece(moves[i]))
 				{
-					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true, true);
+					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true);
 					lmr_count++;
 				}
 				else
@@ -166,11 +189,11 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 				if (score > alpha)
 				{
-					score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true, true);
+					score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
 				
 					if ((score > alpha) && (score < beta))
 					{
-						score = -negamax(b, depth - 1, -beta, -alpha, childpv, true, true);
+						score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
 					}
 				}			
 			}		
@@ -233,7 +256,7 @@ uint32_t search::go(board& b, const int& depth, const bool& display_info, const 
 	{
 		b.pv_line.clear();
 
-		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, b.pv_line, true, false);
+		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, b.pv_line, true);
 
 		if (uci_info.stopped) { break; }
 

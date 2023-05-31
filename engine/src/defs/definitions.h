@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK210"
-#define ENGINE_VERSION "2100"
-#define ENGINE_AUTHOR "Dario Pendic (MK210)"
+#define ENGINE_NAME "Viking MK220"
+#define ENGINE_VERSION "2200"
+#define ENGINE_AUTHOR "Dario Pendic (MK220)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -27,7 +27,6 @@
 #define GAME_PHASE_LOWBOUND 0
 #define GAME_PHASE_HIGHBOUND 6760
 #define VALUE_UNKNOWN 100000
-#define BEST_SELECTION_FACTOR 0.30      // 30% best moves
 
 typedef struct _board_undo
 {
