@@ -108,6 +108,8 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	for (int i = 0; i < moves_size; ++i)
 	{
+		if (depth >= NULL_MOVE_R && !b.get_move_score(moves[i])) { continue; }
+
 		std::vector<uint32_t> childpv;
 		board_undo undo_board;
 		b.preserve_board(undo_board);
