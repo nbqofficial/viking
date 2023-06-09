@@ -106,8 +106,6 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		else { return 0; }
 	}
 
-	if (moves_size == 1) { return score; }
-
 	for (int i = 0; i < moves_size; ++i)
 	{
 		std::vector<uint32_t> childpv;

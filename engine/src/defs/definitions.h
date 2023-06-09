@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK230"
-#define ENGINE_VERSION "2300"
-#define ENGINE_AUTHOR "Dario Pendic (MK230)"
+#define ENGINE_NAME "Viking MK250"
+#define ENGINE_VERSION "2500"
+#define ENGINE_AUTHOR "Dario Pendic (MK250)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -134,6 +134,10 @@ static const uint64_t rank_4 = 1095216660480L;
 static const uint64_t rank_5 = 4278190080L;
 
 static const uint64_t rank_8 = 255L;
+
+static const uint64_t white_territory = 18446744069414584320;
+
+static const uint64_t black_territory = 4294967295;
 
 static const uint64_t file_masks_by_square[] = {
     72340172838076673, 144680345676153346, 289360691352306692, 578721382704613384, 1157442765409226768, 2314885530818453536, 4629771061636907072, 9259542123273814144,

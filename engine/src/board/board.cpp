@@ -1279,7 +1279,13 @@ int board::evaluate()
 	int game_phase_score = get_game_phase_score();
 	uint64_t bb = 0ULL;
 
-	int center_control = bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center);
+	int randomness_score = helper::get_random_int(-10, 10);
+	score += randomness_score;
+
+	int space_control = bitwise::count(this->occupied[white] & black_territory) - bitwise::count(this->occupied[black] & white_territory) * 5;
+	score += space_control;
+
+	int center_control = bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center) * 3;
 	score += center_control;
 
 	int closed_position_count = bitwise::count((this->state[P] | this->state[p]));
@@ -1361,7 +1367,7 @@ int board::evaluate()
 				break;
 			case Q:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
-				score += ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[both]) - 4) * 9);
+				score += ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[both]) - 4) * 7);
 				break;
 			case K:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
@@ -1398,7 +1404,7 @@ int board::evaluate()
 				break;
 			case q:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
-				score -= ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[both]) - 4) * 9);
+				score -= ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[both]) - 4) * 7);
 				break;
 			case k:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
