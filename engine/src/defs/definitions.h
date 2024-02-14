@@ -8,7 +8,7 @@
 #include <chrono>
 
 #define ENGINE_NAME "Viking MK290"
-#define ENGINE_VERSION "2900"
+#define ENGINE_VERSION "2900" //test
 #define ENGINE_AUTHOR "Dario Pendic (MK290)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
