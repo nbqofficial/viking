@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <chrono>
 
-#define ENGINE_NAME "Viking MK290"
-#define ENGINE_VERSION "2900"
-#define ENGINE_AUTHOR "Dario Pendic (MK290)"
+#define ENGINE_NAME "Viking MK310OPT"
+#define ENGINE_VERSION "3100OPT"
+#define ENGINE_AUTHOR "Dario Pendic (MK310OPT)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -300,8 +300,8 @@ static const int mirror_square[] = {
 };
 
 static const int material_evaluation[2][12] = {
-    { 82, 335, 365, 480, 1025, 10000, -82, -335, -365, -480, -1025, -10000 },
-    { 95, 285, 305, 512, 940, 10000, -95, -285, -305, -512, -940, -10000 }
+    { 82, 335, 345, 480, 1025, 10000, -82, -335, -345, -480, -1025, -10000 },
+    { 95, 285, 325, 512, 940, 10000, -95, -285, -325, -512, -940, -10000 }
 };
 
 static const int positional_evaluation[2][6][64] = {
@@ -313,7 +313,7 @@ static const int positional_evaluation[2][6][64] = {
             -14,  13,   6,  21,  23,  12, 17, -23,
             -27,  -2,  -5,  12,  17,   6, 10, -25,
             -26,  -4,  -4, -10,   3,   3, 33, -12,
-            -35,  -1, -20, -23, -15,  24, 38, -22,
+            -35,  -1, -20, -23, -22,  24, 38, -22,
              0,   0,   0,   0,   0,   0,  0,   0
         },
         {

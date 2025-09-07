@@ -30,13 +30,13 @@ class transpo
 
 		~transpo();
 
-		bool allocate(const size_t& size_in_mb);
+		bool allocate(size_t size_in_mb);
 
 		bool deallocate();
 
 		bool reset();
 
-		int read(const uint64_t& hashkey, const int& depth, const int& alpha, const int& beta);
+		int read(uint64_t hashkey, int depth, int alpha, int beta);
 
 		bool write(uint64_t hashkey, int depth, uint8_t flag, int score);
 };

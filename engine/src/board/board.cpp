@@ -1,30 +1,15 @@
 #include "board.h"
 
-board::board()
+board::board() noexcept
 {
 
 }
 
-board::~board()
+board::~board() noexcept
 {
 }
 
-bool board::reset()
-{
-	memset(this->state, 0ULL, sizeof(this->state));
-	memset(this->occupied, 0ULL, sizeof(this->occupied));
-	this->side = white;	
-	this->castling = 0;
-	this->enpassant = no_sq;
-	this->fifty_move = 0;
-	this->hashkey = 0;
-	this->history.clear();
-	memset(this->history_moves, 0, sizeof(this->history_moves));
-	this->pv_line.clear();
-	return true;
-}
-
-bool board::init(const std::string& fen, const bool& display_fen)
+bool board::init(const std::string& fen, bool display_fen) noexcept
 {
 	if (display_fen) { printf("\tfen: %s\n", fen.c_str()); }
 
@@ -169,7 +154,7 @@ bool board::init(const std::string& fen, const bool& display_fen)
 	return true;
 }
 
-void board::display()
+void board::display() const noexcept
 {
 	printf("\n");
 	for (uint8_t r = 0; r < 8; ++r)
@@ -208,67 +193,17 @@ void board::display()
 	printf("\t %llx\n\n", this->hashkey);
 }
 
-uint32_t board::encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& score)
+void board::display_move(uint32_t move) const noexcept
 {
-	return ((from) | (to << 6) | (piece << 12) | (promoted_piece << 16) | (capture_flag << 20) | (double_push_flag << 21) | (enpassant_flag << 22) | (castling_flag << 23) | (score << 24));
-}
-
-uint8_t board::get_move_from(const uint32_t& move)
-{
-	return (move & 0x3f);
-}
-
-uint8_t board::get_move_to(const uint32_t& move)
-{
-	return ((move & 0xfc0) >> 6);
-}
-
-uint8_t board::get_move_piece(const uint32_t& move)
-{
-	return ((move & 0xf000) >> 12);
-}
-
-uint8_t board::get_move_promoted_piece(const uint32_t& move)
-{
-	return ((move & 0xf0000) >> 16);
-}
-
-uint8_t board::get_move_capture_flag(const uint32_t& move)
-{
-	return ((move & 0x100000) >> 20);
-}
-
-uint8_t board::get_move_double_push_flag(const uint32_t& move)
-{
-	return ((move & 0x200000) >> 21);
-}
-
-uint8_t board::get_move_enpassant_flag(const uint32_t& move)
-{
-	return ((move & 0x400000) >> 22);
-}
-
-uint8_t board::get_move_castling_flag(const uint32_t& move)
-{
-	return ((move & 0x800000) >> 23);
-}
-
-uint8_t board::get_move_score(const uint32_t& move)
-{
-	return ((move & 0x3f000000) >> 24);
-}
-
-void board::display_move(const uint32_t& move)
-{
-	uint8_t from = get_move_from(move);
-	uint8_t to = get_move_to(move);
-	uint8_t piece = get_move_piece(move);
-	uint8_t promoted_piece = get_move_promoted_piece(move);
-	uint8_t capture_flag = get_move_capture_flag(move);
-	uint8_t double_push_flag = get_move_double_push_flag(move);
-	uint8_t enpassant_flag = get_move_enpassant_flag(move);
-	uint8_t castling_flag = get_move_castling_flag(move);
-	uint8_t mvvlva = get_move_score(move);
+	uint8_t from = n_move::get_move_from(move);
+	uint8_t to = n_move::get_move_to(move);
+	uint8_t piece = n_move::get_move_piece(move);
+	uint8_t promoted_piece = n_move::get_move_promoted_piece(move);
+	uint8_t capture_flag = n_move::get_move_capture_flag(move);
+	uint8_t double_push_flag = n_move::get_move_double_push_flag(move);
+	uint8_t enpassant_flag = n_move::get_move_enpassant_flag(move);
+	uint8_t castling_flag = n_move::get_move_castling_flag(move);
+	uint8_t mvvlva = n_move::get_move_score(move);
 
 	printf("\t%s%s%c", square_to_coords[from],
 				       square_to_coords[to],
@@ -283,7 +218,7 @@ void board::display_move(const uint32_t& move)
 	printf("        %d\n", mvvlva);
 }
 
-void board::display_moves(const std::vector<uint32_t>& moves)
+void board::display_moves(const std::vector<uint32_t>& moves) const noexcept
 {
 	printf("\tmove    piece promoted capture doublepush enpassant castling score\n\n");
 	for (int i = 0; i < moves.size(); ++i)
@@ -293,14 +228,14 @@ void board::display_moves(const std::vector<uint32_t>& moves)
 	printf("\n\ttotal moves: %llu\n", moves.size());
 }
 
-void board::display_pv_debug(const std::vector<uint32_t>& pv, const int& depth)
+void board::display_pv_debug(const std::vector<uint32_t>& pv, int depth) const noexcept
 {
 	printf("\t%d          ", depth);
 	for (int i = 0; i < pv.size(); ++i)
 	{
-		uint8_t from = get_move_from(pv[i]);
-		uint8_t to = get_move_to(pv[i]);
-		uint8_t promoted_piece = get_move_promoted_piece(pv[i]);
+		uint8_t from = n_move::get_move_from(pv[i]);
+		uint8_t to = n_move::get_move_to(pv[i]);
+		uint8_t promoted_piece = n_move::get_move_promoted_piece(pv[i]);
 
 		printf("%s%s%c ", square_to_coords[from],
 						  square_to_coords[to],
@@ -309,15 +244,15 @@ void board::display_pv_debug(const std::vector<uint32_t>& pv, const int& depth)
 	printf("\n");
 }
 
-void board::display_info(const std::vector<uint32_t>& pv, const int& score, const int& depth, const long long& nodes)
+void board::display_info(const std::vector<uint32_t>& pv, int score, int depth, long long nodes) const noexcept
 {
 	printf("info score cp %d depth %d nodes %lld pv ", score, depth, nodes);
 
 	for (int i = 0; i < pv.size(); ++i)
 	{
-		uint8_t from = get_move_from(pv[i]);
-		uint8_t to = get_move_to(pv[i]);
-		uint8_t promoted_piece = get_move_promoted_piece(pv[i]);
+		uint8_t from = n_move::get_move_from(pv[i]);
+		uint8_t to = n_move::get_move_to(pv[i]);
+		uint8_t promoted_piece = n_move::get_move_promoted_piece(pv[i]);
 
 		if (promoted_piece)
 		{
@@ -334,103 +269,7 @@ void board::display_info(const std::vector<uint32_t>& pv, const int& score, cons
 	printf("\n");
 }
 
-uint64_t board::rook_attacks(const uint8_t& square)
-{
-	uint64_t bin = 1ULL << square;
-	uint64_t hor = (this->occupied[both] - 2 * bin) ^ bitwise::reverse(bitwise::reverse(this->occupied[both]) - 2 * bitwise::reverse(bin));
-	uint64_t ver = ((this->occupied[both] & file_masks[square % 8]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & file_masks[square % 8]) - (2 * bitwise::reverse(bin)));
-	return (hor & rank_masks[square / 8]) | (ver & file_masks[square % 8]);
-}
-
-uint64_t board::bishop_attacks(const uint8_t& square)
-{
-	uint64_t bin = 1ULL << square;
-	uint64_t diag = ((this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bitwise::reverse(bin)));
-	uint64_t antidiag = ((this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bitwise::reverse(bin)));
-	return (diag & diag_masks[(square / 8) + (square % 8)]) | (antidiag & antidiag_masks[(square / 8) + 7 - (square % 8)]);
-}
-
-bool board::is_square_attacked(const uint8_t& square, const uint8_t& by_who)
-{
-	if (pawn_attacks[!by_who][square] & this->state[side_to_piece_type[by_who][P]]) { return true; }
-	
-	if (knight_attacks[square] & this->state[side_to_piece_type[by_who][N]]) { return true; }
-
-	if (bishop_attacks(square) & (this->state[side_to_piece_type[by_who][B]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
-
-	if (rook_attacks(square) & (this->state[side_to_piece_type[by_who][R]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
-
-	if (king_attacks[square] & this->state[side_to_piece_type[by_who][K]]) { return true; }
-
-	return false;
-}
-
-bool board::is_in_check()
-{
-	if (this->side == white)
-	{
-		uint64_t kbb = this->state[K];
-		return is_square_attacked(bitwise::lsb(kbb), black);
-	}
-	else
-	{
-		uint64_t kbb = this->state[k];
-		return is_square_attacked(bitwise::lsb(kbb), white);
-	}
-	return false;
-}
-
-bool board::is_repetition()
-{
-	if (!this->history.size()) { return false; }
-	if (!this->fifty_move) { return false; }
-	if (this->fifty_move > this->history.size()) { return false; }
-
-	for (int i = this->history.size() - this->fifty_move; i < this->history.size(); ++i)
-	{
-		if (this->history[i].hashkey == this->hashkey) { return true; }
-	}
-	return false;
-}
-
-void board::remove_enpassant()
-{
-	this->enpassant = no_sq;
-}
-
-void board::reset_killer_and_history_moves()
-{
-	memset(this->killer_moves, 0, sizeof(this->killer_moves));
-	memset(this->history_moves, 0, sizeof(this->history_moves));
-}
-
-void board::add_killer_move(uint32_t move, const int& depth)
-{
-	this->killer_moves[1][depth] = this->killer_moves[0][depth];
-	this->killer_moves[0][depth] = move;
-}
-
-void board::add_history_move(uint8_t score, const uint8_t& piece, const uint8_t& to_square)
-{
-	this->history_moves[piece][to_square] = score;
-}
-
-uint8_t board::get_side()
-{
-	return this->side;
-}
-
-uint8_t board::get_fifty_move()
-{
-	return this->fifty_move;
-}
-
-void board::switch_side()
-{
-	this->side ^= 1;
-}
-
-void board::generate_hashkey()
+void board::generate_hashkey() noexcept
 {
 	this->hashkey = 0ULL;	
 	for (uint8_t i = P; i <= k; ++i) 
@@ -450,14 +289,9 @@ void board::generate_hashkey()
 	if (this->side == black) { this->hashkey ^= side_hashkey; }
 }
 
-uint64_t board::get_hashkey()
+uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture) noexcept
 {
-	return this->hashkey;
-}
-
-uint8_t board::get_piece_score(const int& depth, const uint8_t& piece, const uint8_t promoted_piece, const uint8_t& from_square, const uint8_t& to_square, const bool& is_capture)
-{
-	if (this->pv_line.size() && get_move_from(this->pv_line[depth]) == from_square && get_move_to(this->pv_line[depth]) == to_square && get_move_promoted_piece(this->pv_line[depth]) == promoted_piece)
+	if (this->pv_line.size() && n_move::get_move_from(this->pv_line[depth]) == from_square && n_move::get_move_to(this->pv_line[depth]) == to_square && n_move::get_move_promoted_piece(this->pv_line[depth]) == promoted_piece)
 	{
 		return 100;
 	}
@@ -471,11 +305,11 @@ uint8_t board::get_piece_score(const int& depth, const uint8_t& piece, const uin
 	}
 	else
 	{
-		if (get_move_from(this->killer_moves[0][depth]) == from_square && get_move_to(this->killer_moves[0][depth]) == to_square && get_move_promoted_piece(this->killer_moves[0][depth]) == promoted_piece)
+		if (n_move::get_move_from(this->killer_moves[0][depth]) == from_square && n_move::get_move_to(this->killer_moves[0][depth]) == to_square && n_move::get_move_promoted_piece(this->killer_moves[0][depth]) == promoted_piece)
 		{
 			return 9;
 		}
-		else if (get_move_from(this->killer_moves[1][depth]) == from_square && get_move_to(this->killer_moves[1][depth]) == to_square && get_move_promoted_piece(this->killer_moves[1][depth]) == promoted_piece)
+		else if (n_move::get_move_from(this->killer_moves[1][depth]) == from_square && n_move::get_move_to(this->killer_moves[1][depth]) == to_square && n_move::get_move_promoted_piece(this->killer_moves[1][depth]) == promoted_piece)
 		{
 			return 8;
 		}
@@ -487,7 +321,7 @@ uint8_t board::get_piece_score(const int& depth, const uint8_t& piece, const uin
 	return 0;
 }
 
-void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal, const int& depth)
+void board::generate_moves(std::vector<uint32_t>& moves, bool sort, uint8_t type, bool extract_legal, int depth) noexcept
 {
 	moves.reserve(40);
 
@@ -513,20 +347,20 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 					{
 						if (from_square >= a7 && from_square <= h7)
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, Q, 0, 0, 0, 0, get_piece_score(depth, P, Q, from_square, to_square, false)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, R, 0, 0, 0, 0, get_piece_score(depth, P, R, from_square, to_square, false)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, B, 0, 0, 0, 0, get_piece_score(depth, P, B, from_square, to_square, false)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, N, 0, 0, 0, 0, get_piece_score(depth, P, N, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, Q, 0, 0, 0, 0, get_piece_score(depth, P, Q, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, R, 0, 0, 0, 0, get_piece_score(depth, P, R, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, B, 0, 0, 0, 0, get_piece_score(depth, P, B, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, N, 0, 0, 0, 0, get_piece_score(depth, P, N, from_square, to_square, false)));
 						}
 						else
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, false)));
 
 								if ((from_square >= a2 && from_square <= h2) && !bitwise::check(this->occupied[both], to_square - 8))
 								{
-									moves.emplace_back(encode_move(from_square, to_square - 8, piece, 0, 0, 1, 0, 0, get_piece_score(depth, P, 0, from_square, to_square - 8, false)));
+									moves.emplace_back(n_move::encode_move(from_square, to_square - 8, piece, 0, 0, 1, 0, 0, get_piece_score(depth, P, 0, from_square, to_square - 8, false)));
 								}
 							}
 						}
@@ -540,14 +374,14 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 
 						if (from_square >= a7 && from_square <= h7)
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, Q, 1, 0, 0, 0, get_piece_score(depth, P, Q, from_square, to_square, true)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, R, 1, 0, 0, 0, get_piece_score(depth, P, R, from_square, to_square, true)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, B, 1, 0, 0, 0, get_piece_score(depth, P, B, from_square, to_square, true)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, N, 1, 0, 0, 0, get_piece_score(depth, P, N, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, Q, 1, 0, 0, 0, get_piece_score(depth, P, Q, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, R, 1, 0, 0, 0, get_piece_score(depth, P, R, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, B, 1, 0, 0, 0, get_piece_score(depth, P, B, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, N, 1, 0, 0, 0, get_piece_score(depth, P, N, from_square, to_square, true)));
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -559,7 +393,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						if (ep_attacks)
 						{
 							uint8_t target_ep = bitwise::lsb(ep_attacks);
-							moves.emplace_back(encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true)));
+							moves.emplace_back(n_move::encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true)));
 						}
 					}
 
@@ -582,12 +416,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{				
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -611,12 +445,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -640,12 +474,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -670,12 +504,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -693,7 +527,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (!is_square_attacked(e1, black) && !is_square_attacked(f1, black))
 							{
-								moves.emplace_back(encode_move(e1, g1, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e1, g1, false)));
+								moves.emplace_back(n_move::encode_move(e1, g1, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e1, g1, false)));
 							}
 						}
 					}
@@ -704,7 +538,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (!is_square_attacked(e1, black) && !is_square_attacked(d1, black))
 							{
-								moves.emplace_back(encode_move(e1, c1, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e1, c1, false)));
+								moves.emplace_back(n_move::encode_move(e1, c1, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e1, c1, false)));
 							}
 						}
 					}
@@ -724,12 +558,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -756,20 +590,20 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 					{
 						if (from_square >= a2 && from_square <= h2)
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, q, 0, 0, 0, 0, get_piece_score(depth, P, q, from_square, to_square, false)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, r, 0, 0, 0, 0, get_piece_score(depth, P, r, from_square, to_square, false)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, b, 0, 0, 0, 0, get_piece_score(depth, P, b, from_square, to_square, false)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, n, 0, 0, 0, 0, get_piece_score(depth, P, n, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, q, 0, 0, 0, 0, get_piece_score(depth, P, q, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, r, 0, 0, 0, 0, get_piece_score(depth, P, r, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, b, 0, 0, 0, 0, get_piece_score(depth, P, b, from_square, to_square, false)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, n, 0, 0, 0, 0, get_piece_score(depth, P, n, from_square, to_square, false)));
 						}
 						else
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, false)));
 
 								if ((from_square >= a7 && from_square <= h7) && !bitwise::check(this->occupied[both], to_square + 8))
 								{
-									moves.emplace_back(encode_move(from_square, to_square + 8, piece, 0, 0, 1, 0, 0, get_piece_score(depth, P, 0, from_square, to_square + 8, false)));
+									moves.emplace_back(n_move::encode_move(from_square, to_square + 8, piece, 0, 0, 1, 0, 0, get_piece_score(depth, P, 0, from_square, to_square + 8, false)));
 								}
 							}
 						}
@@ -783,14 +617,14 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 
 						if (from_square >= a2 && from_square <= h2)
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, q, 1, 0, 0, 0, get_piece_score(depth, P, q, from_square, to_square, true)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, r, 1, 0, 0, 0, get_piece_score(depth, P, r, from_square, to_square, true)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, b, 1, 0, 0, 0, get_piece_score(depth, P, b, from_square, to_square, true)));
-							moves.emplace_back(encode_move(from_square, to_square, piece, n, 1, 0, 0, 0, get_piece_score(depth, P, n, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, q, 1, 0, 0, 0, get_piece_score(depth, P, q, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, r, 1, 0, 0, 0, get_piece_score(depth, P, r, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, b, 1, 0, 0, 0, get_piece_score(depth, P, b, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, n, 1, 0, 0, 0, get_piece_score(depth, P, n, from_square, to_square, true)));
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, P, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -802,7 +636,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						if (ep_attacks)
 						{
 							uint8_t target_ep = bitwise::lsb(ep_attacks);
-							moves.emplace_back(encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true)));
+							moves.emplace_back(n_move::encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true)));
 						}
 					}
 
@@ -825,12 +659,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, N, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -854,12 +688,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, B, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -883,12 +717,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, R, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -913,12 +747,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, Q, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -936,7 +770,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (!is_square_attacked(e8, white) && !is_square_attacked(f8, white))
 							{
-								moves.emplace_back(encode_move(e8, g8, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e8, g8, false)));
+								moves.emplace_back(n_move::encode_move(e8, g8, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e8, g8, false)));
 							}
 						}
 					}
@@ -947,7 +781,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (!is_square_attacked(e8, white) && !is_square_attacked(d8, white))
 							{
-								moves.emplace_back(encode_move(e8, c8, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e8, c8, false)));
+								moves.emplace_back(n_move::encode_move(e8, c8, piece, 0, 0, 0, 0, 1, get_piece_score(depth, K, 0, e8, c8, false)));
 							}
 						}
 					}
@@ -966,12 +800,12 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 						{
 							if (type == all_moves)
 							{
-								moves.emplace_back(encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, false)));
+								moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 0, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, false)));
 							}
 						}
 						else
 						{
-							moves.emplace_back(encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, true)));
+							moves.emplace_back(n_move::encode_move(from_square, to_square, piece, 0, 1, 0, 0, 0, get_piece_score(depth, K, 0, from_square, to_square, true)));
 						}
 						bitwise::clear(attacks, to_square);
 					}
@@ -987,7 +821,7 @@ void board::generate_moves(std::vector<uint32_t>& moves, const bool& sort, const
 	if (sort) { std::sort(moves.begin(), moves.end(), [](const uint32_t& a, const uint32_t& b) { return ((a & 0x3f000000) >> 24) > ((b & 0x3f000000) >> 24); }); }
 }
 
-std::vector<uint32_t> board::extract_legal_moves(std::vector<uint32_t> moves)
+std::vector<uint32_t> board::extract_legal_moves(std::vector<uint32_t> moves) noexcept
 {
 	std::vector<uint32_t> legal_moves;
 	legal_moves.reserve(moves.size());
@@ -1011,135 +845,19 @@ std::vector<uint32_t> board::extract_legal_moves(std::vector<uint32_t> moves)
 	return legal_moves;
 }
 
-void board::preserve_board(board_undo& undo_board)
-{
-	memcpy(undo_board.state, this->state, sizeof(this->state));
-	memcpy(undo_board.occupied, this->occupied, sizeof(this->occupied));
-	undo_board.side = this->side;
-	undo_board.castling = this->castling;
-	undo_board.enpassant = this->enpassant;
-	undo_board.fifty_move = this->fifty_move;
-	undo_board.hashkey = this->hashkey;
-}
-
-void board::restore_board(const board_undo& undo_board)
-{
-	memcpy(this->state, undo_board.state, sizeof(this->state));
-	memcpy(this->occupied, undo_board.occupied, sizeof(this->occupied));
-	this->side = undo_board.side;
-	this->castling = undo_board.castling;
-	this->enpassant = undo_board.enpassant;
-	this->fifty_move = undo_board.fifty_move;
-	this->hashkey = undo_board.hashkey;
-}
-
-bool board::push_history()
-{
-	board_undo undo = { 0 };
-	memcpy(undo.state, this->state, sizeof(this->state));
-	memcpy(undo.occupied, this->occupied, sizeof(this->occupied));
-	undo.side = this->side;
-	undo.castling = this->castling;
-	undo.enpassant = this->enpassant;
-	undo.fifty_move = this->fifty_move;
-	undo.hashkey = this->hashkey;
-	this->history.push_back(undo);
-	return true;
-}
-
-bool board::pop_history()
-{
-	if (this->history.size() > 0)
-	{
-		board_undo undo = this->history[this->history.size() - 1];
-		memcpy(this->state, undo.state, sizeof(this->state));
-		memcpy(this->occupied, undo.occupied, sizeof(this->occupied));
-		this->side = undo.side;
-		this->castling = undo.castling;
-		this->enpassant = undo.enpassant;
-		this->fifty_move = undo.fifty_move;
-		this->hashkey = undo.hashkey;
-		this->history.pop_back();
-	}
-	return false;
-}
-
-uint32_t board::string_to_move(const std::string& move_str)
-{
-	uint8_t ff = helper::letter_to_file(move_str[0]);
-	uint8_t fr = 8 - (move_str[1] - '0');
-	uint8_t tf = helper::letter_to_file(move_str[2]);
-	uint8_t tr = 8 - (move_str[3] - '0');
-
-	uint8_t move_from = helper::rank_and_file_to_square(fr, ff);
-	uint8_t move_to = helper::rank_and_file_to_square(tr, tf);
-	uint8_t move_promoted = 0;
-
-	if (move_str.size() > 4)
-	{
-		switch (move_str[4])
-		{
-			case 'n':
-				if (this->side == white) { move_promoted = N; }
-				else { move_promoted = n; }
-				break;
-			case 'b':
-				if (this->side == white) { move_promoted = B; }
-				else { move_promoted = b; }
-				break;
-			case 'r':
-				if (this->side == white) { move_promoted = R; }
-				else { move_promoted = r; }
-				break;
-			case 'q':
-				if (this->side == white) { move_promoted = Q; }
-				else { move_promoted = q; }
-				break;
-		}
-	}
-
-	std::vector<uint32_t> moves;
-	generate_moves(moves, false, all_moves, false, 0);
-
-	for (int i = 0; i < moves.size(); ++i)
-	{
-		if (get_move_from(moves[i]) == move_from && get_move_to(moves[i]) == move_to && get_move_promoted_piece(moves[i]) == move_promoted)
-		{
-			return moves[i];
-		}
-	}
-	return 0;
-}
-
-std::string board::move_to_string(const uint32_t& move)
-{
-	std::string move_str;
-
-	uint8_t from = get_move_from(move);
-	uint8_t to = get_move_to(move);
-	uint8_t promoted_piece = get_move_promoted_piece(move);
-
-	move_str += square_to_coords[from];
-	move_str += square_to_coords[to];
-
-	if (promoted_piece) { move_str += tolower(pieces_to_ascii[promoted_piece]); }
-
-	return move_str;
-}
-
-bool board::make_move(const uint32_t& move, const bool& save_to_history)
+bool board::make_move(uint32_t move, bool save_to_history) noexcept
 {
 	fifty_move++;
 	if (save_to_history) { push_history(); }
 
-	uint8_t from = get_move_from(move);
-	uint8_t to = get_move_to(move);
-	uint8_t piece = get_move_piece(move);
-	uint8_t promoted_piece = get_move_promoted_piece(move);
-	uint8_t capture_flag = get_move_capture_flag(move);
-	uint8_t double_push_flag = get_move_double_push_flag(move);
-	uint8_t enpassant_flag = get_move_enpassant_flag(move);
-	uint8_t castling_flag = get_move_castling_flag(move);
+	uint8_t from = n_move::get_move_from(move);
+	uint8_t to = n_move::get_move_to(move);
+	uint8_t piece = n_move::get_move_piece(move);
+	uint8_t promoted_piece = n_move::get_move_promoted_piece(move);
+	uint8_t capture_flag = n_move::get_move_capture_flag(move);
+	uint8_t double_push_flag = n_move::get_move_double_push_flag(move);
+	uint8_t enpassant_flag = n_move::get_move_enpassant_flag(move);
+	uint8_t castling_flag = n_move::get_move_castling_flag(move);
 
 	if (piece == P || piece == p) { this->fifty_move = 0; }
 
@@ -1261,18 +979,7 @@ bool board::make_move(const uint32_t& move, const bool& save_to_history)
 	return true;
 }
 
-int board::get_game_phase_score()
-{
-	int score = 0;
-
-	for (uint8_t i = N; i <= Q; ++i) { score += (bitwise::count(this->state[i]) * material_evaluation[opening][i]); }
-
-	for (uint8_t i = n; i <= q; ++i) { score += (bitwise::count(this->state[i]) * -material_evaluation[opening][i]); }
-
-	return score;
-}
-
-int board::evaluate()
+int board::evaluate() noexcept
 {
 	int score = 0;
 	int doubled_pawns = 0;
@@ -1282,7 +989,7 @@ int board::evaluate()
 	int space_control = bitwise::count(this->occupied[white] & black_territory) - bitwise::count(this->occupied[black] & white_territory) * 5;
 	score += space_control;
 
-	int center_control = bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center) * 10;
+	int center_control = bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center) * 15;
 	score += center_control;
 
 	int closed_position_count = bitwise::count((this->state[P] | this->state[p]));

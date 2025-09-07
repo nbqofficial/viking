@@ -10,7 +10,7 @@ class perft
 
 	public:
 
-		void node_test(board& b, const uint8_t& depth);
+		void node_test(board& b, uint8_t depth);
 
-		void test(board& b, const uint8_t& depth);
+		void test(board& b, uint8_t depth);
 };

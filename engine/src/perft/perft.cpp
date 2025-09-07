@@ -1,6 +1,6 @@
 #include "perft.h"
 
-void perft::node_test(board& b, const uint8_t& depth)
+void perft::node_test(board& b, uint8_t depth)
 {
 	if (!depth)
 	{
@@ -22,7 +22,7 @@ void perft::node_test(board& b, const uint8_t& depth)
 	return;
 }
 
-void perft::test(board& b, const uint8_t& depth)
+void perft::test(board& b, uint8_t depth)
 {
 	b.display();
 	printf("\tPERFORMANCE TESTING\n\n");

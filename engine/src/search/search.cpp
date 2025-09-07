@@ -48,7 +48,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	return alpha;
 }
 
-int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, const bool& null_move)
+int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, bool null_move)
 {
 	int score = -INF_SCORE;
 
@@ -108,7 +108,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	for (int i = 0; i < moves_size; ++i)
 	{
-		if (depth >= NULL_MOVE_R && !b.get_move_score(moves[i])) { continue; }
+		if (depth >= NULL_MOVE_R && !n_move::get_move_score(moves[i])) { continue; }
 
 		std::vector<uint32_t> childpv;
 		board_undo undo_board;
@@ -138,7 +138,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 			}
 			else
 			{
-				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !b.get_move_capture_flag(moves[i]) && !b.get_move_promoted_piece(moves[i]))
+				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !n_move::get_move_capture_flag(moves[i]) && !n_move::get_move_promoted_piece(moves[i]))
 				{
 					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true);
 					lmr_count++;
@@ -170,13 +170,13 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		{
 			hash_flag = tf_exact;
 
-			if (!b.get_move_capture_flag(moves[i])) { b.add_history_move(5, b.get_move_piece(moves[i]), b.get_move_to(moves[i])); }
+			if (!n_move::get_move_capture_flag(moves[i])) { b.add_history_move(5, n_move::get_move_piece(moves[i]), n_move::get_move_to(moves[i])); }
 
 			if (score >= beta)
 			{
 				this->transpo_table.write(b.get_hashkey(), depth, tf_beta, beta);
 
-				if (!b.get_move_capture_flag(moves[i])) { b.add_killer_move(moves[i], depth - 1); }
+				if (!n_move::get_move_capture_flag(moves[i])) { b.add_killer_move(moves[i], depth - 1); }
 
 				if (i == 0) { this->fhf++; }
 				this->fh++;
@@ -206,7 +206,7 @@ search::~search()
 	this->transpo_table.deallocate();
 }
 
-uint32_t search::go(board& b, const int& depth, const bool& display_info, const bool& display_debug)
+uint32_t search::go(board& b, int depth, bool display_info, bool display_debug)
 {
 	b.reset_killer_and_history_moves();
 

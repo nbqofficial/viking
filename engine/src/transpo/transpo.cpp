@@ -8,7 +8,7 @@ transpo::~transpo()
 {
 }
 
-bool transpo::allocate(const size_t& size_in_mb)
+bool transpo::allocate(size_t size_in_mb)
 {
 	if (this->allocated) { return false; }
 	this->tt = (ptransposition_table)malloc(size_in_mb * 0x100000);
@@ -44,7 +44,7 @@ bool transpo::reset()
 	return true;
 }
 
-int transpo::read(const uint64_t& hashkey, const int& depth, const int& alpha, const int& beta)
+int transpo::read(uint64_t hashkey, int depth, int alpha, int beta)
 {
 	ptransposition_table entry = &this->tt[hashkey % this->entries];
 

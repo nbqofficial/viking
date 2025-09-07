@@ -28,6 +28,9 @@
     <Filter Include="src\transpo">
       <UniqueIdentifier>{dab1ef84-b3c6-441b-814a-fdb549254dc4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\move">
+      <UniqueIdentifier>{4347c7f1-775b-411a-8b5f-9662349030b1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -79,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="src\transpo\transpo.h">
       <Filter>src\transpo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\move\move.h">
+      <Filter>src\move</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

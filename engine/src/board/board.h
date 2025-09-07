@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../bitwise/bitwise.h"
+#include "../move/move.h"
 
 class board
 {
@@ -21,93 +21,274 @@ class board
 		
 		std::vector<uint32_t> pv_line;
 		
-		board();
+		board() noexcept;
 
-		~board();
+		~board() noexcept;
 
-		bool reset();
+		bool reset() noexcept
+		{
+			memset(this->state, 0ULL, sizeof(this->state));
+			memset(this->occupied, 0ULL, sizeof(this->occupied));
+			this->side = white;
+			this->castling = 0;
+			this->enpassant = no_sq;
+			this->fifty_move = 0;
+			this->hashkey = 0;
+			this->history.clear();
+			memset(this->history_moves, 0, sizeof(this->history_moves));
+			this->pv_line.clear();
+			return true;
+		}
 
-		bool init(const std::string& fen, const bool& display_fen);
+		bool init(const std::string& fen, bool display_fen) noexcept;
 
-		void display();
+		void display() const noexcept;
 
-		uint32_t encode_move(const uint8_t& from, const uint8_t& to, const uint8_t& piece, const uint8_t& promoted_piece, const uint8_t& capture_flag, const uint8_t& double_push_flag, const uint8_t& enpassant_flag, const uint8_t& castling_flag, const uint8_t& score);
+		void display_move(uint32_t move) const noexcept;
 
-		uint8_t get_move_from(const uint32_t& move);
+		void display_moves(const std::vector<uint32_t>& moves) const noexcept;
 
-		uint8_t get_move_to(const uint32_t& move);
+		void display_pv_debug(const std::vector<uint32_t>& pv, int depth) const noexcept;
 
-		uint8_t get_move_piece(const uint32_t& move);
+		void display_info(const std::vector<uint32_t>& pv, int score, int depth, long long nodes) const noexcept;
 
-		uint8_t get_move_promoted_piece(const uint32_t& move);
+		inline uint64_t rook_attacks(uint8_t square) const noexcept
+		{
+			uint64_t bin = 1ULL << square;
+			uint64_t hor = (this->occupied[both] - 2 * bin) ^ bitwise::reverse(bitwise::reverse(this->occupied[both]) - 2 * bitwise::reverse(bin));
+			uint64_t ver = ((this->occupied[both] & file_masks[square % 8]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & file_masks[square % 8]) - (2 * bitwise::reverse(bin)));
+			return (hor & rank_masks[square / 8]) | (ver & file_masks[square % 8]);
+		}
 
-		uint8_t get_move_capture_flag(const uint32_t& move);
+		inline uint64_t bishop_attacks(uint8_t square) const noexcept
+		{
+			uint64_t bin = 1ULL << square;
+			uint64_t diag = ((this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bitwise::reverse(bin)));
+			uint64_t antidiag = ((this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bitwise::reverse(bin)));
+			return (diag & diag_masks[(square / 8) + (square % 8)]) | (antidiag & antidiag_masks[(square / 8) + 7 - (square % 8)]);
+		}
 
-		uint8_t get_move_double_push_flag(const uint32_t& move);
+		inline bool is_square_attacked(uint8_t square, uint8_t by_who) const noexcept
+		{
+			if (pawn_attacks[!by_who][square] & this->state[side_to_piece_type[by_who][P]]) { return true; }
 
-		uint8_t get_move_enpassant_flag(const uint32_t& move);
+			if (knight_attacks[square] & this->state[side_to_piece_type[by_who][N]]) { return true; }
 
-		uint8_t get_move_castling_flag(const uint32_t& move);
+			if (bishop_attacks(square) & (this->state[side_to_piece_type[by_who][B]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
 
-		uint8_t get_move_score(const uint32_t& move);
+			if (rook_attacks(square) & (this->state[side_to_piece_type[by_who][R]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
 
-		void display_move(const uint32_t& move);
+			if (king_attacks[square] & this->state[side_to_piece_type[by_who][K]]) { return true; }
 
-		void display_moves(const std::vector<uint32_t>& moves);
+			return false;
+		}
 
-		void display_pv_debug(const std::vector<uint32_t>& pv, const int& depth);
+		inline bool is_in_check() const noexcept
+		{
+			if (this->side == white)
+			{
+				uint64_t kbb = this->state[K];
+				return is_square_attacked(bitwise::lsb(kbb), black);
+			}
+			else
+			{
+				uint64_t kbb = this->state[k];
+				return is_square_attacked(bitwise::lsb(kbb), white);
+			}
+			return false;
+		}
 
-		void display_info(const std::vector<uint32_t>& pv, const int& score, const int& depth, const long long& nodes);
+		inline bool is_repetition() const noexcept
+		{
+			if (!this->history.size()) { return false; }
+			if (!this->fifty_move) { return false; }
+			if (this->fifty_move > this->history.size()) { return false; }
 
-		uint64_t rook_attacks(const uint8_t& square);
+			for (int i = this->history.size() - this->fifty_move; i < this->history.size(); ++i)
+			{
+				if (this->history[i].hashkey == this->hashkey) { return true; }
+			}
+			return false;
+		}
 
-		uint64_t bishop_attacks(const uint8_t& square);
+		inline void remove_enpassant() noexcept
+		{
+			this->enpassant = no_sq;
+		}
 
-		bool is_square_attacked(const uint8_t& square, const uint8_t& by_who);
+		inline void reset_killer_and_history_moves() noexcept
+		{
+			memset(this->killer_moves, 0, sizeof(this->killer_moves));
+			memset(this->history_moves, 0, sizeof(this->history_moves));
+		}
 
-		bool is_in_check();
+		inline void add_killer_move(uint32_t move, int depth) noexcept
+		{
+			this->killer_moves[1][depth] = this->killer_moves[0][depth];
+			this->killer_moves[0][depth] = move;
+		}
 
-		bool is_repetition();
+		inline void add_history_move(uint8_t score, uint8_t piece, uint8_t to_square) noexcept
+		{
+			this->history_moves[piece][to_square] = score;
+		}
 
-		void remove_enpassant();
+		inline uint8_t get_side() const noexcept
+		{
+			return this->side;
+		}
 
-		void reset_killer_and_history_moves();
+		inline uint8_t get_fifty_move() const noexcept
+		{
+			return this->fifty_move;
+		}
 
-		void add_killer_move(uint32_t move, const int& depth);
+		inline void switch_side() noexcept
+		{
+			this->side ^= 1;
+		}
 
-		void add_history_move(uint8_t score, const uint8_t& piece, const uint8_t& to_square);
+		void generate_hashkey() noexcept;
 
-		uint8_t get_side();
+		inline uint64_t get_hashkey() const noexcept
+		{
+			return this->hashkey;
+		}
 
-		uint8_t get_fifty_move();
+		uint8_t get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture) noexcept;
 
-		void switch_side();
+		void generate_moves(std::vector<uint32_t>& moves, bool sort, uint8_t type, bool extract_legal, int depth) noexcept;
 
-		void generate_hashkey();
+		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves) noexcept;
 
-		uint64_t get_hashkey();
+		inline void preserve_board(board_undo& undo_board) noexcept
+		{
+			memcpy(undo_board.state, this->state, sizeof(this->state));
+			memcpy(undo_board.occupied, this->occupied, sizeof(this->occupied));
+			undo_board.side = this->side;
+			undo_board.castling = this->castling;
+			undo_board.enpassant = this->enpassant;
+			undo_board.fifty_move = this->fifty_move;
+			undo_board.hashkey = this->hashkey;
+		}
 
-		uint8_t get_piece_score(const int& depth, const uint8_t& piece, const uint8_t promoted_piece, const uint8_t& from_square, const uint8_t& to_square, const bool& is_capture);
+		inline void restore_board(const board_undo& undo_board) noexcept
+		{
+			memcpy(this->state, undo_board.state, sizeof(this->state));
+			memcpy(this->occupied, undo_board.occupied, sizeof(this->occupied));
+			this->side = undo_board.side;
+			this->castling = undo_board.castling;
+			this->enpassant = undo_board.enpassant;
+			this->fifty_move = undo_board.fifty_move;
+			this->hashkey = undo_board.hashkey;
+		}
 
-		void generate_moves(std::vector<uint32_t>& moves, const bool& sort, const uint8_t& type, const bool& extract_legal, const int& depth);
+		inline bool push_history() noexcept
+		{
+			board_undo undo = { 0 };
+			memcpy(undo.state, this->state, sizeof(this->state));
+			memcpy(undo.occupied, this->occupied, sizeof(this->occupied));
+			undo.side = this->side;
+			undo.castling = this->castling;
+			undo.enpassant = this->enpassant;
+			undo.fifty_move = this->fifty_move;
+			undo.hashkey = this->hashkey;
+			this->history.push_back(undo);
+			return true;
+		}
 
-		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves);
+		inline bool pop_history() noexcept
+		{
+			if (this->history.size() > 0)
+			{
+				board_undo undo = this->history[this->history.size() - 1];
+				memcpy(this->state, undo.state, sizeof(this->state));
+				memcpy(this->occupied, undo.occupied, sizeof(this->occupied));
+				this->side = undo.side;
+				this->castling = undo.castling;
+				this->enpassant = undo.enpassant;
+				this->fifty_move = undo.fifty_move;
+				this->hashkey = undo.hashkey;
+				this->history.pop_back();
+			}
+			return false;
+		}
 
-		void preserve_board(board_undo& undo_board);
+		inline uint32_t string_to_move(const std::string& move_str) noexcept
+		{
+			uint8_t ff = helper::letter_to_file(move_str[0]);
+			uint8_t fr = 8 - (move_str[1] - '0');
+			uint8_t tf = helper::letter_to_file(move_str[2]);
+			uint8_t tr = 8 - (move_str[3] - '0');
 
-		void restore_board(const board_undo& undo_board);
+			uint8_t move_from = helper::rank_and_file_to_square(fr, ff);
+			uint8_t move_to = helper::rank_and_file_to_square(tr, tf);
+			uint8_t move_promoted = 0;
 
-		bool push_history();
+			if (move_str.size() > 4)
+			{
+				switch (move_str[4])
+				{
+				case 'n':
+					if (this->side == white) { move_promoted = N; }
+					else { move_promoted = n; }
+					break;
+				case 'b':
+					if (this->side == white) { move_promoted = B; }
+					else { move_promoted = b; }
+					break;
+				case 'r':
+					if (this->side == white) { move_promoted = R; }
+					else { move_promoted = r; }
+					break;
+				case 'q':
+					if (this->side == white) { move_promoted = Q; }
+					else { move_promoted = q; }
+					break;
+				}
+			}
 
-		bool pop_history();
+			std::vector<uint32_t> moves;
+			generate_moves(moves, false, all_moves, false, 0);
 
-		uint32_t string_to_move(const std::string& move_str);
+			for (int i = 0; i < moves.size(); ++i)
+			{
+				if (n_move::get_move_from(moves[i]) == move_from && n_move::get_move_to(moves[i]) == move_to && n_move::get_move_promoted_piece(moves[i]) == move_promoted)
+				{
+					return moves[i];
+				}
+			}
+			return 0;
+		}
 
-		std::string move_to_string(const uint32_t& move);
+		inline std::string move_to_string(uint32_t move) const noexcept
+		{
+			std::string move_str;
 
-		bool make_move(const uint32_t& move, const bool& save_to_history);
+			uint8_t from = n_move::get_move_from(move);
+			uint8_t to = n_move::get_move_to(move);
+			uint8_t promoted_piece = n_move::get_move_promoted_piece(move);
 
-		int get_game_phase_score();
+			move_str += square_to_coords[from];
+			move_str += square_to_coords[to];
 
-		int evaluate();
+			if (promoted_piece) { move_str += tolower(pieces_to_ascii[promoted_piece]); }
+
+			return move_str;
+		}
+
+		bool make_move(uint32_t move, bool save_to_history) noexcept;
+
+		inline int get_game_phase_score() const noexcept
+		{
+			int score = 0;
+
+			for (uint8_t i = N; i <= Q; ++i) { score += (bitwise::count(this->state[i]) * material_evaluation[opening][i]); }
+
+			for (uint8_t i = n; i <= q; ++i) { score += (bitwise::count(this->state[i]) * -material_evaluation[opening][i]); }
+
+			return score;
+		}
+
+		int evaluate() noexcept;
 };
