@@ -152,8 +152,9 @@ void uci::parse_perft(char* line_in)
 
 void uci::parse_displaymoves()
 {
-	std::vector<uint32_t> moves;
-	this->b.generate_moves(moves, true, all_moves, true, 0);
+	move_list moves{};
+	b.generate_moves(moves, true, all_moves, true, 0);
+
 	this->b.display_moves(moves);
 }
 

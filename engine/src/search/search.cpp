@@ -13,15 +13,15 @@ int search::quiescence(board& b, int alpha, int beta)
 
 	score = -INF_SCORE;
 
-	std::vector<uint32_t> moves;
+	move_list moves{};
 	b.generate_moves(moves, true, only_forcing, true, 0);
-	int moves_size = moves.size();
+	int moves_size = moves.m_size;
 
 	for (int i = 0; i < moves_size; ++i)
 	{
 		board_undo undo_board;
 		b.preserve_board(undo_board);
-		b.make_move(moves[i], false);
+		b.make_move(moves.m_moves[i], false);
 
 		if (b.is_repetition())
 		{
@@ -96,9 +96,9 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	score = -INF_SCORE;
 
-	std::vector<uint32_t> moves;
+	move_list moves{};
 	b.generate_moves(moves, true, all_moves, true, depth - 1);
-	int moves_size = moves.size();
+	int moves_size = moves.m_size;
 
 	if (!moves_size)
 	{
@@ -108,12 +108,12 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	for (int i = 0; i < moves_size; ++i)
 	{
-		if (depth >= NULL_MOVE_R && !n_move::get_move_score(moves[i])) { continue; }
+		if (depth >= NULL_MOVE_R && !n_move::get_move_score(moves.m_moves[i])) { continue; }
 
 		std::vector<uint32_t> childpv;
 		board_undo undo_board;
 		b.preserve_board(undo_board);
-		b.make_move(moves[i], false);
+		b.make_move(moves.m_moves[i], false);
 
 		if (b.is_repetition()) 
 		{ 
@@ -138,7 +138,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 			}
 			else
 			{
-				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !n_move::get_move_capture_flag(moves[i]) && !n_move::get_move_promoted_piece(moves[i]))
+				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !n_move::get_move_capture_flag(moves.m_moves[i]) && !n_move::get_move_promoted_piece(moves.m_moves[i]))
 				{
 					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true);
 					lmr_count++;
@@ -170,13 +170,13 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		{
 			hash_flag = tf_exact;
 
-			if (!n_move::get_move_capture_flag(moves[i])) { b.add_history_move(5, n_move::get_move_piece(moves[i]), n_move::get_move_to(moves[i])); }
+			if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_history_move(5, n_move::get_move_piece(moves.m_moves[i]), n_move::get_move_to(moves.m_moves[i])); }
 
 			if (score >= beta)
 			{
 				this->transpo_table.write(b.get_hashkey(), depth, tf_beta, beta);
 
-				if (!n_move::get_move_capture_flag(moves[i])) { b.add_killer_move(moves[i], depth - 1); }
+				if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_killer_move(moves.m_moves[i], depth - 1); }
 
 				if (i == 0) { this->fhf++; }
 				this->fh++;
@@ -186,7 +186,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 			found_pv = true;
 
 			pv.clear();
-			pv.push_back(moves[i]);
+			pv.push_back(moves.m_moves[i]);
 			std::copy(childpv.begin(), childpv.end(), std::back_inserter(pv));
 		}
 	}

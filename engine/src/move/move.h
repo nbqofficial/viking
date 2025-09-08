@@ -53,4 +53,12 @@ namespace n_move
 	{
 		return (m >> 24) & 0x3F;
 	}
+
+	inline void sort_moves_by_score(move_list& moves) noexcept
+	{
+		std::sort(moves.begin(), moves.end(),
+			[](uint32_t a, uint32_t b) noexcept {
+				return get_move_score(a) > get_move_score(b);
+			});
+	}
 }

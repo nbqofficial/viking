@@ -26,19 +26,13 @@ namespace bitwise
 
 	inline uint8_t count(uint64_t bb) noexcept
 	{
-		uint8_t counter = 0;
-		while (bb)
-		{
-			counter++;
-			bb &= bb - 1;
-		}
-		return counter;
+		return static_cast<uint8_t>(__popcnt64(bb));
 	}
 
 	inline int8_t lsb(uint64_t bb) noexcept
 	{
-		if (bb) { return count((bb & -(int64_t)bb) - 1); }
-		else { return -1; }
+		if (!bb) return -1;
+		return static_cast<int8_t>(_tzcnt_u64(bb));
 	}
 
 	inline void negate(uint64_t& bb) noexcept
@@ -48,14 +42,12 @@ namespace bitwise
 
 	inline uint64_t reverse(uint64_t bb) noexcept
 	{
-		uint64_t result = bb;
-		result = ((result >> 1) & ((uint64_t)0x55555555 << 32 | 0x55555555)) | ((result << 1) & ((uint64_t)0xaaaaaaaa << 32 | 0xaaaaaaaa));
-		result = ((result >> 2) & ((uint64_t)0x33333333 << 32 | 0x33333333)) | ((result << 2) & ((uint64_t)0xcccccccc << 32 | 0xcccccccc));
-		result = ((result >> 4) & ((uint64_t)0x0f0f0f0f << 32 | 0x0f0f0f0f)) | ((result << 4) & ((uint64_t)0xf0f0f0f0 << 32 | 0xf0f0f0f0));
-		result = ((result >> 8) & ((uint64_t)0x00ff00ff << 32 | 0x00ff00ff)) | ((result << 8) & ((uint64_t)0xff00ff00 << 32 | 0xff00ff00));
-		result = ((result >> 16) & ((uint64_t)0x0000ffff << 32 | 0x0000ffff)) | ((result << 16) & ((uint64_t)0xffff0000 << 32 | 0xffff0000));
-		result = (result >> 32) | (result << 32);
-		return result;
+		bb = ((bb >> 1) & 0x5555555555555555ULL) | ((bb & 0x5555555555555555ULL) << 1);
+		bb = ((bb >> 2) & 0x3333333333333333ULL) | ((bb & 0x3333333333333333ULL) << 2);
+		bb = ((bb >> 4) & 0x0F0F0F0F0F0F0F0FULL) | ((bb & 0x0F0F0F0F0F0F0F0FULL) << 4);
+		bb = ((bb >> 8) & 0x00FF00FF00FF00FFULL) | ((bb & 0x00FF00FF00FF00FFULL) << 8);
+		bb = ((bb >> 16) & 0x0000FFFF0000FFFFULL) | ((bb & 0x0000FFFF0000FFFFULL) << 16);
+		return (bb >> 32) | (bb << 32);
 	}
 
 	void display(const uint64_t& bitboard);

@@ -6,10 +6,13 @@
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <intrin.h>
+#include <immintrin.h>
+#include <array>
 
-#define ENGINE_NAME "Viking MK310OPT"
-#define ENGINE_VERSION "3100OPT"
-#define ENGINE_AUTHOR "Dario Pendic (MK310OPT)"
+#define ENGINE_NAME "Viking MK330OPT"
+#define ENGINE_VERSION "3300OPT"
+#define ENGINE_AUTHOR "Dario Pendic (MK330OPT)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -49,6 +52,43 @@ typedef struct _search_info
     bool quit;
     bool stopped;
 }search_info, *psearch_info;
+
+typedef struct _move_list
+{
+    std::array<uint32_t, 256> m_moves{};
+    uint8_t m_size = 0;
+
+    inline void push(uint32_t move) noexcept
+    {
+        this->m_moves[this->m_size++] = move;
+    }
+
+    inline void clear() noexcept
+    {
+        this->m_size = 0;
+    }
+
+    inline const uint32_t* begin() const noexcept
+    {
+        return this->m_moves.data();
+    }
+
+    inline const uint32_t* end() const noexcept
+    {
+        return this->m_moves.data() + this->m_size;
+    }
+
+    inline uint32_t* begin() noexcept
+    {
+        return this->m_moves.data();
+    }
+
+    inline uint32_t* end() noexcept
+    {
+        return this->m_moves.data() + this->m_size;
+    }
+
+}move_list, *pmove_list;
 
 
 enum squares : uint8_t

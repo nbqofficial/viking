@@ -8,14 +8,14 @@ void perft::node_test(board& b, uint8_t depth)
 		return;
 	}
 
-	std::vector<uint32_t> moves;
+	move_list moves{};
 	b.generate_moves(moves, false, all_moves, true, 0);
 
-	for (int i = 0; i < moves.size(); ++i)
+	for (int i = 0; i < moves.m_size; ++i)
 	{
 		board_undo undo_board;
 		b.preserve_board(undo_board);
-		b.make_move(moves[i], false);
+		b.make_move(moves.m_moves[i], false);
 		node_test(b, depth - 1);
 		b.restore_board(undo_board);
 	}

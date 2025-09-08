@@ -46,7 +46,7 @@ class board
 
 		void display_move(uint32_t move) const noexcept;
 
-		void display_moves(const std::vector<uint32_t>& moves) const noexcept;
+		void display_moves(const move_list& moves) const noexcept;
 
 		void display_pv_debug(const std::vector<uint32_t>& pv, int depth) const noexcept;
 
@@ -157,9 +157,9 @@ class board
 
 		uint8_t get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture) noexcept;
 
-		void generate_moves(std::vector<uint32_t>& moves, bool sort, uint8_t type, bool extract_legal, int depth) noexcept;
+		void generate_pseudolegal(move_list& moves, uint8_t type, int depth) noexcept;
 
-		std::vector<uint32_t> extract_legal_moves(std::vector<uint32_t> moves) noexcept;
+		void generate_moves(move_list& moves, bool sort, uint8_t type, bool extract_legal, int depth) noexcept;
 
 		inline void preserve_board(board_undo& undo_board) noexcept
 		{
@@ -248,14 +248,14 @@ class board
 				}
 			}
 
-			std::vector<uint32_t> moves;
+			move_list moves{};
 			generate_moves(moves, false, all_moves, false, 0);
 
-			for (int i = 0; i < moves.size(); ++i)
+			for (int i = 0; i < moves.m_size; ++i)
 			{
-				if (n_move::get_move_from(moves[i]) == move_from && n_move::get_move_to(moves[i]) == move_to && n_move::get_move_promoted_piece(moves[i]) == move_promoted)
+				if (n_move::get_move_from(moves.m_moves[i]) == move_from && n_move::get_move_to(moves.m_moves[i]) == move_to && n_move::get_move_promoted_piece(moves.m_moves[i]) == move_promoted)
 				{
-					return moves[i];
+					return moves.m_moves[i];
 				}
 			}
 			return 0;
