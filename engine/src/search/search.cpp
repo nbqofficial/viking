@@ -77,7 +77,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	score = -INF_SCORE;
 
-	if (null_move && !inchk && depth >= NULL_MOVE_R)
+	if (null_move && !inchk && depth >= NULL_MOVE_R && b.big_piece_exist())
 	{
 		std::vector<uint32_t> cpv;
 		board_undo undo_board;
@@ -198,7 +198,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 search::search()
 {
-	if (this->transpo_table.allocate(64)) { this->transpo_table.reset(); }
+	if (this->transpo_table.allocate(128)) { this->transpo_table.reset(); }
 }
 
 search::~search()

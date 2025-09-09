@@ -83,6 +83,36 @@ class board
 			return false;
 		}
 
+		inline bool is_in_check_from_square(uint8_t piece, uint8_t attack_square) const noexcept
+		{
+			if (this->side == white)
+			{
+				uint64_t kbb = this->state[k];
+
+				if (piece == P && pawn_attacks[white][attack_square] & kbb) { return true; }
+
+				if (piece == N && knight_attacks[attack_square] & kbb) { return true; }
+
+				if ((piece == B || piece == Q) && bishop_attacks(attack_square) & kbb) { return true; }
+
+				if ((piece == R || piece == Q) && rook_attacks(attack_square) & kbb) { return true; }
+			}
+			else
+			{
+				uint64_t kbb = this->state[K];
+
+				if (piece == P && pawn_attacks[black][attack_square] & kbb) { return true; }
+
+				if (piece == N && knight_attacks[attack_square] & kbb) { return true; }
+
+				if ((piece == B || piece == Q) && bishop_attacks(attack_square) & kbb) { return true; }
+
+				if ((piece == R || piece == Q) && rook_attacks(attack_square) & kbb) { return true; }
+			}
+
+			return false;
+		}
+
 		inline bool is_in_check() const noexcept
 		{
 			if (this->side == white)
@@ -288,6 +318,18 @@ class board
 			for (uint8_t i = n; i <= q; ++i) { score += (bitwise::count(this->state[i]) * -material_evaluation[opening][i]); }
 
 			return score;
+		}
+
+		inline uint64_t big_piece_exist() const noexcept
+		{
+			if (this->get_side() == white)
+			{
+				return (this->state[N] | this->state[B] | this->state[R] | this->state[Q]);
+			}
+			else
+			{
+				return (this->state[n] | this->state[b] | this->state[r] | this->state[q]);
+			}
 		}
 
 		int evaluate() noexcept;

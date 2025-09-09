@@ -312,10 +312,18 @@ uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece,
 		else if (n_move::get_move_from(this->killer_moves[1][depth]) == from_square && n_move::get_move_to(this->killer_moves[1][depth]) == to_square && n_move::get_move_promoted_piece(this->killer_moves[1][depth]) == promoted_piece)
 		{
 			return 8;
-		}
+		}	
 		else
 		{
-			return this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+			uint8_t hms = this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+			if (hms > 3)
+			{
+				return hms;
+			}
+			else if (this->is_in_check_from_square(piece, to_square))
+			{
+				return 1;
+			}
 		}
 	}
 	return 0;
@@ -996,7 +1004,7 @@ int board::evaluate() noexcept
 	int space_control = (bitwise::count(this->occupied[white] & black_territory) - bitwise::count(this->occupied[black] & white_territory)) * 5;
 	score += space_control;
 
-	int center_control = (bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center)) * 15;
+	int center_control = (bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center)) * 10;
 	score += center_control;
 
 	int closed_position_count = bitwise::count((this->state[P] | this->state[p]));
