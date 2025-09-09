@@ -10,9 +10,9 @@
 #include <immintrin.h>
 #include <array>
 
-#define ENGINE_NAME "Viking MK340OPT"
-#define ENGINE_VERSION "3400OPT"
-#define ENGINE_AUTHOR "Dario Pendic (MK340OPT)"
+#define ENGINE_NAME "Viking MK350OPT"
+#define ENGINE_VERSION "3500OPT"
+#define ENGINE_AUTHOR "Dario Pendic (MK350OPT)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening

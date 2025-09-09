@@ -320,17 +320,5 @@ class board
 			return score;
 		}
 
-		inline uint64_t big_piece_exist() const noexcept
-		{
-			if (this->get_side() == white)
-			{
-				return (this->state[N] | this->state[B] | this->state[R] | this->state[Q]);
-			}
-			else
-			{
-				return (this->state[n] | this->state[b] | this->state[r] | this->state[q]);
-			}
-		}
-
 		int evaluate() noexcept;
 };

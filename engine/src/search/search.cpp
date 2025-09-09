@@ -77,7 +77,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	score = -INF_SCORE;
 
-	if (null_move && !inchk && depth >= NULL_MOVE_R && b.big_piece_exist())
+	if (null_move && !inchk && depth >= NULL_MOVE_R)
 	{
 		std::vector<uint32_t> cpv;
 		board_undo undo_board;
