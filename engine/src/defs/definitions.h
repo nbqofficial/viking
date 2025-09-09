@@ -10,9 +10,9 @@
 #include <immintrin.h>
 #include <array>
 
-#define ENGINE_NAME "Viking MK350OPT"
-#define ENGINE_VERSION "3500OPT"
-#define ENGINE_AUTHOR "Dario Pendic (MK350OPT)"
+#define ENGINE_NAME "Viking MK500OPT"
+#define ENGINE_VERSION "5000OPT"
+#define ENGINE_AUTHOR "Dario Pendic (MK500OPT)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -340,8 +340,8 @@ static const int mirror_square[] = {
 };
 
 static const int material_evaluation[2][12] = {
-    { 82, 335, 345, 480, 1025, 10000, -82, -335, -345, -480, -1025, -10000 },
-    { 95, 285, 325, 512, 940, 10000, -95, -285, -325, -512, -940, -10000 }
+    { 88, 335, 345, 480, 1025, 10000, -88, -335, -345, -480, -1025, -10000 },
+    { 95, 305, 325, 512, 980, 10000, -95, -305, -325, -512, -980, -10000 }
 };
 
 static const int positional_evaluation[2][6][64] = {
@@ -471,7 +471,7 @@ static const int positional_evaluation[2][6][64] = {
     }
 };
 
-static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 75, 100, 150, 200 };
+static const int passed_pawn_evaluation[] = { 0, 10, 30, 50, 75, 90, 120, 200 };
 
 static const uint64_t state_hashkey[12][64] = {
     { 

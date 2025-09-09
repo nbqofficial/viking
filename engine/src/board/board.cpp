@@ -1004,7 +1004,16 @@ int board::evaluate() noexcept
 	int space_control = (bitwise::count(this->occupied[white] & black_territory) - bitwise::count(this->occupied[black] & white_territory)) * 5;
 	score += space_control;
 
-	int center_control = (bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center)) * 10;
+	int white_kingside_pawns = bitwise::count(this->state[P] & king_side) * 3;
+	int white_queenside_pawns = bitwise::count(this->state[P] & queen_side) * 2;
+
+	int black_kingside_pawns = bitwise::count(this->state[p] & king_side) * 3;
+	int black_queenside_pawns = bitwise::count(this->state[p] & queen_side) * 2;
+
+	int pawn_side_score = white_kingside_pawns + white_queenside_pawns - black_kingside_pawns - black_queenside_pawns;
+	score += pawn_side_score;
+
+	int center_control = (bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center)) * 15;
 	score += center_control;
 
 	int closed_position_count = bitwise::count((this->state[P] | this->state[p]));
@@ -1070,7 +1079,7 @@ int board::evaluate() noexcept
 			case N:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
 				score += bitwise::count(knight_attacks[square] & ~this->occupied[white]);
-				if (closed_position_count > 13) { score += 20; }
+				if (closed_position_count > 13) { score += 30; }
 				break;
 			case B:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
@@ -1092,7 +1101,7 @@ int board::evaluate() noexcept
 				bb = (this->state[P] & file_masks_by_square[square]);
 				if (!bb) { score -= 40; }
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
-				if (!bb) { score -= 60; }		
+				if (!bb) { score -= 70; }		
 				break;
 			case p:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][P][mirror_square[square]], positional_evaluation[opening][P][mirror_square[square]]);
@@ -1106,7 +1115,7 @@ int board::evaluate() noexcept
 			case n:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
 				score -= bitwise::count(knight_attacks[square] & ~this->occupied[black]);
-				if (closed_position_count > 13) { score -= 20; }
+				if (closed_position_count > 13) { score -= 30; }
 				break;
 			case b:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
@@ -1128,7 +1137,7 @@ int board::evaluate() noexcept
 				bb = (this->state[p] & file_masks_by_square[square]);
 				if (!bb) { score += 40; }
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
-				if (!bb) { score += 60; }
+				if (!bb) { score += 70; }
 				break;
 			}
 			bitwise::clear(bitboard, square);
