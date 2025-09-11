@@ -1022,8 +1022,8 @@ int board::evaluate() noexcept
 	int black_color_complex = bitwise::count(this->state[p] & light_squares) - bitwise::count(this->state[p] & dark_squares);
 	
 	// tempo bonus
-	if (this->side == white) { score += 10; }
-	else { score -= 10; }
+	if (this->side == white) { score += 15; }
+	else { score -= 15; }
 
 	if (white_color_complex > 0)
 	{
