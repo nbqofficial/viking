@@ -1089,7 +1089,7 @@ int board::evaluate() noexcept
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
 				score += bitwise::count(knight_attacks[square] & ~this->occupied[white]);
 				if (closed_position_count > 13) { score += 30; }
-				if (bitwise::check(black_king_ring2, square)) { score += 30; }
+				if (bitwise::check(black_king_ring2, square)) { score += 10; }
 				if (!this->is_defended_by_pawns(square, white)) { score -= 20; }
 				break;
 			case B:
@@ -1108,7 +1108,7 @@ int board::evaluate() noexcept
 				break;
 			case Q:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
-				if (bitwise::check(black_king_ring2, square)) { score += 20; }
+				if (bitwise::check(black_king_ring2, square)) { score += 10; }
 				break;
 			case K:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
@@ -1132,7 +1132,7 @@ int board::evaluate() noexcept
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
 				score -= bitwise::count(knight_attacks[square] & ~this->occupied[black]);
 				if (closed_position_count > 13) { score -= 30; }
-				if (bitwise::check(white_king_ring2, square)) { score -= 30; }
+				if (bitwise::check(white_king_ring2, square)) { score -= 10; }
 				if (!this->is_defended_by_pawns(square, black)) { score += 20; }
 				break;
 			case b:
@@ -1151,7 +1151,7 @@ int board::evaluate() noexcept
 				break;
 			case q:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
-				if (bitwise::check(white_king_ring2, square)) { score -= 20; }
+				if (bitwise::check(white_king_ring2, square)) { score -= 10; }
 				break;
 			case k:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
