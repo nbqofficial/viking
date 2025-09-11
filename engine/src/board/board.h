@@ -42,7 +42,7 @@ class board
 
 		bool init(const std::string& fen, bool display_fen) noexcept;
 
-		void display() const noexcept;
+		void display() noexcept;
 
 		void display_move(uint32_t move) const noexcept;
 
@@ -79,36 +79,6 @@ class board
 			if (rook_attacks(square) & (this->state[side_to_piece_type[by_who][R]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
 
 			if (king_attacks[square] & this->state[side_to_piece_type[by_who][K]]) { return true; }
-
-			return false;
-		}
-
-		inline bool is_in_check_from_square(uint8_t piece, uint8_t attack_square) const noexcept
-		{
-			if (this->side == white)
-			{
-				uint64_t kbb = this->state[k];
-
-				if (piece == P && pawn_attacks[white][attack_square] & kbb) { return true; }
-
-				if (piece == N && knight_attacks[attack_square] & kbb) { return true; }
-
-				if ((piece == B || piece == Q) && bishop_attacks(attack_square) & kbb) { return true; }
-
-				if ((piece == R || piece == Q) && rook_attacks(attack_square) & kbb) { return true; }
-			}
-			else
-			{
-				uint64_t kbb = this->state[K];
-
-				if (piece == P && pawn_attacks[black][attack_square] & kbb) { return true; }
-
-				if (piece == N && knight_attacks[attack_square] & kbb) { return true; }
-
-				if ((piece == B || piece == Q) && bishop_attacks(attack_square) & kbb) { return true; }
-
-				if ((piece == R || piece == Q) && rook_attacks(attack_square) & kbb) { return true; }
-			}
 
 			return false;
 		}
