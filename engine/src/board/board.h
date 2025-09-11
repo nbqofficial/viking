@@ -332,5 +332,11 @@ class board
 			}
 		}
 
+		inline bool is_defended_by_pawns(uint8_t square, uint8_t by_who) const noexcept
+		{
+			if (pawn_attacks[!by_who][square] & this->state[side_to_piece_type[by_who][P]]) { return true; }
+			return false;
+		}
+
 		int evaluate() noexcept;
 };

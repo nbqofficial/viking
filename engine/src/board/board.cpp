@@ -1021,6 +1021,10 @@ int board::evaluate() noexcept
 	int white_color_complex = bitwise::count(this->state[P] & light_squares) - bitwise::count(this->state[P] & dark_squares);
 	int black_color_complex = bitwise::count(this->state[p] & light_squares) - bitwise::count(this->state[p] & dark_squares);
 	
+	// tempo bonus
+	if (this->side == white) { score += 10; }
+	else { score -= 10; }
+
 	if (white_color_complex > 0)
 	{
 		if (!(this->state[B] & dark_squares)) 
@@ -1055,6 +1059,9 @@ int board::evaluate() noexcept
 		}
 	}
 
+	uint64_t white_king_ring2 = king_ring2[bitwise::lsb(this->state[K])];
+	uint64_t black_king_ring2 = king_ring2[bitwise::lsb(this->state[k])];
+
 	for (uint8_t piece = P; piece <= k; ++piece)
 	{
 		uint64_t bitboard = this->state[piece];
@@ -1075,16 +1082,21 @@ int board::evaluate() noexcept
 				if (!bb) { score -= 10; }
 				bb = (this->state[p] & white_passed_masks_by_square[square]);
 				if (!bb) { score += passed_pawn_evaluation[rank_by_square[square]]; }
+				if (bitwise::check(black_king_ring2, square)) { score += 5; }
+				if (!this->is_defended_by_pawns(square, white)) { score -= 5; }
 				break;
 			case N:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][square], positional_evaluation[opening][N][square]);
 				score += bitwise::count(knight_attacks[square] & ~this->occupied[white]);
 				if (closed_position_count > 13) { score += 30; }
+				if (bitwise::check(black_king_ring2, square)) { score += 30; }
+				if (!this->is_defended_by_pawns(square, white)) { score -= 20; }
 				break;
 			case B:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
 				score += ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 5);
 				score += 15;
+				if (bitwise::check(black_king_ring2, square)) { score += 10; }
 				break;
 			case R:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][square], positional_evaluation[opening][R][square]);
@@ -1092,9 +1104,11 @@ int board::evaluate() noexcept
 				if (!bb) { score += 10; }
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
 				if (!bb) { score += 15; }
+				if (bitwise::check(black_king_ring2, square)) { score += 10; }
 				break;
 			case Q:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
+				if (bitwise::check(black_king_ring2, square)) { score += 20; }
 				break;
 			case K:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
@@ -1111,16 +1125,21 @@ int board::evaluate() noexcept
 				if (!bb) { score += 10; }
 				bb = (this->state[P] & black_passed_masks_by_square[square]);
 				if (!bb) { score -= passed_pawn_evaluation[rank_by_square[square]]; }
+				if (bitwise::check(white_king_ring2, square)) { score -= 5; }
+				if (!this->is_defended_by_pawns(square, black)) { score += 5; }
 				break;
 			case n:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][N][mirror_square[square]], positional_evaluation[opening][N][mirror_square[square]]);
 				score -= bitwise::count(knight_attacks[square] & ~this->occupied[black]);
 				if (closed_position_count > 13) { score -= 30; }
+				if (bitwise::check(white_king_ring2, square)) { score -= 30; }
+				if (!this->is_defended_by_pawns(square, black)) { score += 20; }
 				break;
 			case b:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
 				score -= ((bitwise::count(bishop_attacks(square) & ~this->occupied[both]) - 4) * 5);
 				score -= 15;
+				if (bitwise::check(white_king_ring2, square)) { score -= 10; }
 				break;
 			case r:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][R][mirror_square[square]], positional_evaluation[opening][R][mirror_square[square]]);
@@ -1128,9 +1147,11 @@ int board::evaluate() noexcept
 				if (!bb) { score -= 10; }
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
 				if (!bb) { score -= 15; }
+				if (bitwise::check(white_king_ring2, square)) { score -= 10; }
 				break;
 			case q:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
+				if (bitwise::check(white_king_ring2, square)) { score -= 20; }
 				break;
 			case k:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);
