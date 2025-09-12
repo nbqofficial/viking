@@ -999,11 +999,11 @@ int board::evaluate() noexcept
 	int space_control = (bitwise::count(this->occupied[white] & black_territory) - bitwise::count(this->occupied[black] & white_territory)) * 5;
 	score += space_control;
 
-	int white_kingside_pawns = bitwise::count(this->state[P] & king_side) * 3;
-	int white_queenside_pawns = bitwise::count(this->state[P] & queen_side) * 2;
+	int white_kingside_pawns = bitwise::count(this->state[P] & king_side) * 2;
+	int white_queenside_pawns = bitwise::count(this->state[P] & queen_side) * 3;
 
-	int black_kingside_pawns = bitwise::count(this->state[p] & king_side) * 3;
-	int black_queenside_pawns = bitwise::count(this->state[p] & queen_side) * 2;
+	int black_kingside_pawns = bitwise::count(this->state[p] & king_side) * 2;
+	int black_queenside_pawns = bitwise::count(this->state[p] & queen_side) * 3;
 
 	int pawn_side_score = white_kingside_pawns + white_queenside_pawns - black_kingside_pawns - black_queenside_pawns;
 	score += pawn_side_score;

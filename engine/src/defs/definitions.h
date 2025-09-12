@@ -10,9 +10,9 @@
 #include <immintrin.h>
 #include <array>
 
-#define ENGINE_NAME "Viking HYPEROPT"
-#define ENGINE_VERSION "HYPEROPT"
-#define ENGINE_AUTHOR "Dario Pendic (HYPEROPT)"
+#define ENGINE_NAME "Viking X"
+#define ENGINE_VERSION "X"
+#define ENGINE_AUTHOR "Dario Pendic (X)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
