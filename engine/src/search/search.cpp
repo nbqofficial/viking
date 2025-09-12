@@ -170,7 +170,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		{
 			hash_flag = tf_exact;
 
-			if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_history_move(5, n_move::get_move_piece(moves.m_moves[i]), n_move::get_move_to(moves.m_moves[i])); }
+			if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_history_move(75, n_move::get_move_piece(moves.m_moves[i]), n_move::get_move_to(moves.m_moves[i])); }
 
 			if (score >= beta)
 			{

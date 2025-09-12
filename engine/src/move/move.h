@@ -51,7 +51,7 @@ namespace n_move
 
 	inline constexpr uint8_t get_move_score(uint32_t m) noexcept
 	{
-		return (m >> 24) & 0x3F;
+		return (m >> 24) & 0xFF;
 	}
 
 	inline void sort_moves_by_score(move_list& moves) noexcept

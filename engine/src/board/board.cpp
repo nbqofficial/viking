@@ -294,7 +294,7 @@ uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece,
 {
 	if (this->pv_line.size() && n_move::get_move_from(this->pv_line[depth]) == from_square && n_move::get_move_to(this->pv_line[depth]) == to_square && n_move::get_move_promoted_piece(this->pv_line[depth]) == promoted_piece)
 	{
-		return 100;
+		return 200;
 	}
 	if (is_capture)
 	{
@@ -308,15 +308,17 @@ uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece,
 	{
 		if (n_move::get_move_from(this->killer_moves[0][depth]) == from_square && n_move::get_move_to(this->killer_moves[0][depth]) == to_square && n_move::get_move_promoted_piece(this->killer_moves[0][depth]) == promoted_piece)
 		{
-			return 9;
+			return 90;
 		}
 		else if (n_move::get_move_from(this->killer_moves[1][depth]) == from_square && n_move::get_move_to(this->killer_moves[1][depth]) == to_square && n_move::get_move_promoted_piece(this->killer_moves[1][depth]) == promoted_piece)
 		{
-			return 8;
+			return 80;
 		}	
 		else
 		{
-			return this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+			uint8_t hms = this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+			if (hms > 70) { return hms; }
+			else { return this->score_possible_attack(piece, to_square); }
 		}
 	}
 	return 0;

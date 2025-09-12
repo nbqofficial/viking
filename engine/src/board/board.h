@@ -308,5 +308,127 @@ class board
 			return false;
 		}
 
+		inline uint8_t score_possible_pawn_attack(uint8_t attack_square) const noexcept
+		{
+			uint64_t attacks = pawn_attacks[this->side][attack_square];
+
+			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 65; } // pawn attacks king
+
+			if (attacks & this->state[side_to_piece_type[!this->side][Q]]) { return 55; } // pawn attacks queen
+
+			if (attacks & this->state[side_to_piece_type[!this->side][R]]) { return 45; } // pawn attacks rook
+
+			if (attacks & this->state[side_to_piece_type[!this->side][B]]) { return 35; } // pawn attacks bishop
+
+			if (attacks & this->state[side_to_piece_type[!this->side][N]]) { return 24; } // pawn attacks knight
+
+			if (attacks & this->state[side_to_piece_type[!this->side][P]]) { return 15; } // pawn attacks pawn
+
+			return 0;
+		}
+
+		inline uint8_t score_possible_knight_attack(uint8_t attack_square) const noexcept
+		{
+			uint64_t attacks = knight_attacks[attack_square];
+
+			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 64; } // knight attacks king
+
+			if (attacks & this->state[side_to_piece_type[!this->side][Q]]) { return 54; } // knight attacks queen
+
+			if (attacks & this->state[side_to_piece_type[!this->side][R]]) { return 44; } // knight attacks rook
+
+			if (attacks & this->state[side_to_piece_type[!this->side][B]]) { return 34; } // knight attacks bishop
+
+			if (attacks & this->state[side_to_piece_type[!this->side][N]]) { return 24; } // knight attacks knight
+
+			if (attacks & this->state[side_to_piece_type[!this->side][P]]) { return 14; } // knight attacks pawn
+
+			return 0;
+		}
+
+		inline uint8_t score_possible_bishop_attack(uint8_t attack_square) const noexcept
+		{
+			uint64_t attacks = bishop_attacks(attack_square);
+
+			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 63; } // bishop attacks king
+
+			if (attacks & this->state[side_to_piece_type[!this->side][Q]]) { return 53; } // bishop attacks queen
+
+			if (attacks & this->state[side_to_piece_type[!this->side][R]]) { return 43; } // bishop attacks rook
+
+			if (attacks & this->state[side_to_piece_type[!this->side][B]]) { return 33; } // bishop attacks bishop
+
+			if (attacks & this->state[side_to_piece_type[!this->side][N]]) { return 23; } // bishop attacks knight
+
+			if (attacks & this->state[side_to_piece_type[!this->side][P]]) { return 13; } // bishop attacks pawn
+
+			return 0;
+		}
+
+		inline uint8_t score_possible_rook_attack(uint8_t attack_square) const noexcept
+		{
+			uint64_t attacks = rook_attacks(attack_square);
+
+			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 62; } // rook attacks king
+
+			if (attacks & this->state[side_to_piece_type[!this->side][Q]]) { return 52; } // rook attacks queen
+
+			if (attacks & this->state[side_to_piece_type[!this->side][R]]) { return 42; } // rook attacks rook
+
+			if (attacks & this->state[side_to_piece_type[!this->side][B]]) { return 32; } // rook attacks bishop
+
+			if (attacks & this->state[side_to_piece_type[!this->side][N]]) { return 22; } // rook attacks knight
+
+			if (attacks & this->state[side_to_piece_type[!this->side][P]]) { return 12; } // rook attacks pawn
+
+			return 0;
+		}
+
+		inline uint8_t score_possible_queen_attack(uint8_t attack_square) const noexcept
+		{
+			uint64_t attacks = rook_attacks(attack_square) | bishop_attacks(attack_square);
+
+			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 61; } // queen attacks king
+
+			if (attacks & this->state[side_to_piece_type[!this->side][Q]]) { return 51; } // queen attacks queen
+
+			if (attacks & this->state[side_to_piece_type[!this->side][R]]) { return 41; } // queen attacks rook
+
+			if (attacks & this->state[side_to_piece_type[!this->side][B]]) { return 31; } // queen attacks bishop
+
+			if (attacks & this->state[side_to_piece_type[!this->side][N]]) { return 21; } // queen attacks knight
+
+			if (attacks & this->state[side_to_piece_type[!this->side][P]]) { return 11; } // queen attacks pawn
+
+			return 0;
+		}
+
+		inline uint8_t score_possible_king_attack(uint8_t attack_square) const noexcept
+		{
+			uint64_t attacks = king_attacks[attack_square];
+
+			if (attacks & this->state[side_to_piece_type[!this->side][R]]) { return 40; } // king attacks rook
+
+			if (attacks & this->state[side_to_piece_type[!this->side][B]]) { return 30; } // king attacks bishop
+
+			if (attacks & this->state[side_to_piece_type[!this->side][N]]) { return 20; } // king attacks knight
+
+			if (attacks & this->state[side_to_piece_type[!this->side][P]]) { return 10; } // king attacks pawn
+
+			return 0;
+		}
+
+		inline uint8_t score_possible_attack(uint8_t piece, uint8_t attack_square) const noexcept
+		{
+			if (piece == P) { return this->score_possible_pawn_attack(attack_square); }
+			else if (piece == N) { return this->score_possible_knight_attack(attack_square); }
+			else if (piece == B) { return this->score_possible_bishop_attack(attack_square); }
+			else if (piece == R) { return this->score_possible_rook_attack(attack_square); }
+			else if (piece == Q) { return this->score_possible_queen_attack(attack_square); }
+			else if (piece == K) { return this->score_possible_king_attack(attack_square); }
+
+			return 0;
+		}
+
 		int evaluate() noexcept;
 };

@@ -10,9 +10,9 @@
 #include <immintrin.h>
 #include <array>
 
-#define ENGINE_NAME "Viking SUPEROPT-RS"
-#define ENGINE_VERSION "SUPEROPT-RS"
-#define ENGINE_AUTHOR "Dario Pendic (SUPEROPT-RS)"
+#define ENGINE_NAME "Viking HYPEROPT"
+#define ENGINE_VERSION "HYPEROPT"
+#define ENGINE_AUTHOR "Dario Pendic (HYPEROPT)"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -324,12 +324,12 @@ static const uint64_t pawn_attacks[2][64] = {
 };
 
 static const uint8_t mvvlva[6][5] = {
-    { 15, 25, 35, 45, 55 },
-    { 14, 24, 34, 44, 54 },
-    { 13, 23, 33, 43, 53 },
-    { 12, 22, 32, 42, 52 },
-    { 11, 21, 31, 41, 51 },
-    { 10, 20, 30, 40, 50}
+    { 110, 130, 150, 170, 190 },
+    { 108, 128, 148, 168, 188 },
+    { 106, 126, 146, 166, 186 },
+    { 104, 124, 144, 164, 184 },
+    { 102, 122, 142, 162, 182 },
+    { 100, 120, 140, 160, 180 }
 };
 
 static const uint8_t castling_rights[] = {
@@ -639,4 +639,4 @@ static const int LMR_DEPTH_LIMIT = 3;
 // 0000 0000 0010 0000 0000 0000 0000 0000      double push flag    0x200000
 // 0000 0000 0100 0000 0000 0000 0000 0000      enpassant flag      0x400000
 // 0000 0000 1000 0000 0000 0000 0000 0000      castling flag       0x800000
-// 0011 1111 0000 0000 0000 0000 0000 0000      score               0x3f000000
+// 1111 1111 0000 0000 0000 0000 0000 0000      score               0xFF000000
