@@ -438,8 +438,11 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 				{
 					from_square = bitwise::lsb(bitboard);
 
-					attacks = this->bishop_attacks(from_square) & ~this->occupied[white];
-
+#ifdef _USE_MAGIC_BITBOARDS
+					attacks = this->bishop_attacks_magic(from_square) & ~this->occupied[white];
+#else
+					attacks = this->bishop_attacks_hq(from_square) & ~this->occupied[white];
+#endif
 					while (attacks)
 					{
 						to_square = bitwise::lsb(attacks);
@@ -467,8 +470,11 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 				{
 					from_square = bitwise::lsb(bitboard);
 
-					attacks = this->rook_attacks(from_square) & ~this->occupied[white];
-
+#ifdef _USE_MAGIC_BITBOARDS
+					attacks = this->rook_attacks_magic(from_square) & ~this->occupied[white];
+#else
+					attacks = this->rook_attacks_hq(from_square) & ~this->occupied[white];
+#endif
 					while (attacks)
 					{
 						to_square = bitwise::lsb(attacks);
@@ -496,9 +502,12 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 				{
 					from_square = bitwise::lsb(bitboard);
 
-					attacks = this->rook_attacks(from_square) | this->bishop_attacks(from_square);
+#ifdef _USE_MAGIC_BITBOARDS
+					attacks = this->queen_attacks_magic(from_square) & ~this->occupied[white];
+#else
+					attacks = this->rook_attacks_hq(from_square) | this->bishop_attacks_hq(from_square);
 					attacks &= ~this->occupied[white];
-
+#endif
 					while (attacks)
 					{
 						to_square = bitwise::lsb(attacks);
@@ -680,9 +689,11 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 				while (bitboard)
 				{
 					from_square = bitwise::lsb(bitboard);
-
-					attacks = this->bishop_attacks(from_square) & ~this->occupied[black];
-
+#ifdef _USE_MAGIC_BITBOARDS
+					attacks = this->bishop_attacks_magic(from_square) & ~this->occupied[black];
+#else
+					attacks = this->bishop_attacks_hq(from_square) & ~this->occupied[black];
+#endif
 					while (attacks)
 					{
 						to_square = bitwise::lsb(attacks);
@@ -709,9 +720,11 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 				while (bitboard)
 				{
 					from_square = bitwise::lsb(bitboard);
-
-					attacks = this->rook_attacks(from_square) & ~this->occupied[black];
-
+#ifdef _USE_MAGIC_BITBOARDS
+					attacks = this->rook_attacks_magic(from_square) & ~this->occupied[black];
+#else
+					attacks = this->rook_attacks_hq(from_square) & ~this->occupied[black];
+#endif
 					while (attacks)
 					{
 						to_square = bitwise::lsb(attacks);
@@ -738,10 +751,12 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 				while (bitboard)
 				{
 					from_square = bitwise::lsb(bitboard);
-
-					attacks = this->rook_attacks(from_square) | this->bishop_attacks(from_square);
+#ifdef _USE_MAGIC_BITBOARDS
+					attacks = this->queen_attacks_magic(from_square) & ~this->occupied[black];
+#else
+					attacks = this->rook_attacks_hq(from_square) | this->bishop_attacks_hq(from_square);
 					attacks &= ~this->occupied[black];
-
+#endif
 					while (attacks)
 					{
 						to_square = bitwise::lsb(attacks);
@@ -999,15 +1014,6 @@ int board::evaluate() noexcept
 	int space_control = (bitwise::count(this->occupied[white] & black_territory) - bitwise::count(this->occupied[black] & white_territory)) * 5;
 	score += space_control;
 
-	int white_kingside_pawns = bitwise::count(this->state[P] & king_side) * 2;
-	int white_queenside_pawns = bitwise::count(this->state[P] & queen_side) * 3;
-
-	int black_kingside_pawns = bitwise::count(this->state[p] & king_side) * 2;
-	int black_queenside_pawns = bitwise::count(this->state[p] & queen_side) * 3;
-
-	int pawn_side_score = white_kingside_pawns + white_queenside_pawns - black_kingside_pawns - black_queenside_pawns;
-	score += pawn_side_score;
-
 	int center_control = (bitwise::count(this->occupied[white] & extended_center) - bitwise::count(this->occupied[black] & extended_center)) * 15;
 	score += center_control;
 
@@ -1089,7 +1095,11 @@ int board::evaluate() noexcept
 				break;
 			case B:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][square], positional_evaluation[opening][B][square]);
-				score += ((bitwise::count(bishop_attacks(square) & ~this->occupied[white]) - 4) * 5);
+#ifdef _USE_MAGIC_BITBOARDS
+				score += ((bitwise::count(bishop_attacks_magic(square) & ~this->occupied[white]) - 4) * 5);
+#else
+				score += ((bitwise::count(bishop_attacks_hq(square) & ~this->occupied[white]) - 4) * 5);
+#endif
 				score += 15;
 				if (bitwise::check(black_king_ring2, square)) { score += 2; }
 				break;
@@ -1100,12 +1110,20 @@ int board::evaluate() noexcept
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
 				if (!bb) { score += 15; }
 				if (bitwise::check(black_king_ring2, square)) { score += 3; }
-				score += ((bitwise::count(rook_attacks(square) & ~this->occupied[white]) - 7) * 2);
+#ifdef _USE_MAGIC_BITBOARDS
+				score += ((bitwise::count(rook_attacks_magic(square) & ~this->occupied[white]) - 7) * 2);
+#else
+				score += ((bitwise::count(rook_attacks_hq(square) & ~this->occupied[white]) - 7) * 2);
+#endif
 				break;
 			case Q:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][square], positional_evaluation[opening][Q][square]);
 				if (bitwise::check(black_king_ring2, square)) { score += 3; }
-				score += ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[white]) - 14) * 1);
+#ifdef _USE_MAGIC_BITBOARDS
+				score += ((bitwise::count(queen_attacks_magic(square) & ~this->occupied[white]) - 14) * 1);
+#else
+				score += ((bitwise::count((bishop_attacks_hq(square) | rook_attacks_hq(square)) & ~this->occupied[white]) - 14) * 1);
+#endif
 				break;
 			case K:
 				score += helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][square], positional_evaluation[opening][K][square]);
@@ -1134,7 +1152,11 @@ int board::evaluate() noexcept
 				break;
 			case b:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][B][mirror_square[square]], positional_evaluation[opening][B][mirror_square[square]]);
-				score -= ((bitwise::count(bishop_attacks(square) & ~this->occupied[black]) - 4) * 5);
+#ifdef _USE_MAGIC_BITBOARDS
+				score -= ((bitwise::count(bishop_attacks_magic(square) & ~this->occupied[black]) - 4) * 5);
+#else
+				score -= ((bitwise::count(bishop_attacks_hq(square) & ~this->occupied[black]) - 4) * 5);
+#endif
 				score -= 15;
 				if (bitwise::check(white_king_ring2, square)) { score -= 2; }
 				break;
@@ -1145,12 +1167,20 @@ int board::evaluate() noexcept
 				bb = ((this->state[P] | this->state[p]) & file_masks_by_square[square]);
 				if (!bb) { score -= 15; }
 				if (bitwise::check(white_king_ring2, square)) { score -= 3; }
-				score -= ((bitwise::count(rook_attacks(square) & ~this->occupied[black]) - 7) * 2);
+#ifdef _USE_MAGIC_BITBOARDS
+				score -= ((bitwise::count(rook_attacks_magic(square) & ~this->occupied[black]) - 7) * 2);
+#else
+				score -= ((bitwise::count(rook_attacks_hq(square) & ~this->occupied[black]) - 7) * 2);
+#endif
 				break;
 			case q:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][Q][mirror_square[square]], positional_evaluation[opening][Q][mirror_square[square]]);
 				if (bitwise::check(white_king_ring2, square)) { score -= 3; }
-				score -= ((bitwise::count((bishop_attacks(square) | rook_attacks(square)) & ~this->occupied[black]) - 14) * 1);
+#ifdef _USE_MAGIC_BITBOARDS
+				score -= ((bitwise::count(queen_attacks_magic(square) & ~this->occupied[black]) - 14) * 1);
+#else
+				score -= ((bitwise::count((bishop_attacks_hq(square) | rook_attacks_hq(square)) & ~this->occupied[black]) - 14) * 1);
+#endif
 				break;
 			case k:
 				score -= helper::taper(game_phase_score, GAME_PHASE_LOWBOUND, GAME_PHASE_HIGHBOUND, positional_evaluation[endgame][K][mirror_square[square]], positional_evaluation[opening][K][mirror_square[square]]);

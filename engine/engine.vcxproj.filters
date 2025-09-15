@@ -57,6 +57,9 @@
     <ClCompile Include="src\transpo\transpo.cpp">
       <Filter>src\transpo</Filter>
     </ClCompile>
+    <ClCompile Include="src\defs\definitions.cpp">
+      <Filter>src\defs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">

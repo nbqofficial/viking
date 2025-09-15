@@ -52,7 +52,49 @@ class board
 
 		void display_info(const std::vector<uint32_t>& pv, int score, int depth, long long nodes) const noexcept;
 
-		inline uint64_t rook_attacks(uint8_t square) const noexcept
+#ifdef _USE_MAGIC_BITBOARDS
+		inline uint64_t rook_attacks_magic(uint8_t square) const noexcept
+		{
+			uint64_t occupancy = this->occupied[both];
+			occupancy &= rook_masks[square];
+			occupancy *= rook_magic_numbers[square];
+			occupancy >>= 64 - rook_relevant_bits[square];
+
+			return rook_attacks[square][occupancy];
+		}
+
+		inline uint64_t bishop_attacks_magic(uint8_t square) const noexcept
+		{
+			uint64_t occupancy = this->occupied[both];
+			occupancy &= bishop_masks[square];
+			occupancy *= bishop_magic_numbers[square];
+			occupancy >>= 64 - bishop_relevant_bits[square];
+
+			return bishop_attacks[square][occupancy];
+		}
+
+		inline uint64_t queen_attacks_magic(uint8_t square) const noexcept
+		{
+			uint64_t queen_attacks = 0ULL;
+			uint64_t bishop_occupancy = this->occupied[both];
+			uint64_t rook_occupancy = this->occupied[both];
+
+			bishop_occupancy &= bishop_masks[square];
+			bishop_occupancy *= bishop_magic_numbers[square];
+			bishop_occupancy >>= 64 - bishop_relevant_bits[square];
+
+			queen_attacks = bishop_attacks[square][bishop_occupancy];
+
+			rook_occupancy &= rook_masks[square];
+			rook_occupancy *= rook_magic_numbers[square];
+			rook_occupancy >>= 64 - rook_relevant_bits[square];
+
+			queen_attacks |= rook_attacks[square][rook_occupancy];
+
+			return queen_attacks;
+		}
+#else
+		inline uint64_t rook_attacks_hq(uint8_t square) const noexcept
 		{
 			uint64_t bin = 1ULL << square;
 			uint64_t hor = (this->occupied[both] - 2 * bin) ^ bitwise::reverse(bitwise::reverse(this->occupied[both]) - 2 * bitwise::reverse(bin));
@@ -60,24 +102,29 @@ class board
 			return (hor & rank_masks[square / 8]) | (ver & file_masks[square % 8]);
 		}
 
-		inline uint64_t bishop_attacks(uint8_t square) const noexcept
+		inline uint64_t bishop_attacks_hq(uint8_t square) const noexcept
 		{
 			uint64_t bin = 1ULL << square;
 			uint64_t diag = ((this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & diag_masks[(square / 8) + (square % 8)]) - (2 * bitwise::reverse(bin)));
 			uint64_t antidiag = ((this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bin)) ^ bitwise::reverse(bitwise::reverse(this->occupied[both] & antidiag_masks[(square / 8) + 7 - (square % 8)]) - (2 * bitwise::reverse(bin)));
 			return (diag & diag_masks[(square / 8) + (square % 8)]) | (antidiag & antidiag_masks[(square / 8) + 7 - (square % 8)]);
 		}
+#endif
 
 		inline bool is_square_attacked(uint8_t square, uint8_t by_who) const noexcept
 		{
 			if (pawn_attacks[!by_who][square] & this->state[side_to_piece_type[by_who][P]]) { return true; }
 
 			if (knight_attacks[square] & this->state[side_to_piece_type[by_who][N]]) { return true; }
+#ifdef _USE_MAGIC_BITBOARDS
+			if (bishop_attacks_magic(square) & (this->state[side_to_piece_type[by_who][B]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
 
-			if (bishop_attacks(square) & (this->state[side_to_piece_type[by_who][B]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
+			if (rook_attacks_magic(square) & (this->state[side_to_piece_type[by_who][R]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
+#else
+			if (bishop_attacks_hq(square) & (this->state[side_to_piece_type[by_who][B]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
 
-			if (rook_attacks(square) & (this->state[side_to_piece_type[by_who][R]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
-
+			if (rook_attacks_hq(square) & (this->state[side_to_piece_type[by_who][R]] | this->state[side_to_piece_type[by_who][Q]])) { return true; }
+#endif
 			if (king_attacks[square] & this->state[side_to_piece_type[by_who][K]]) { return true; }
 
 			return false;
@@ -348,7 +395,11 @@ class board
 
 		inline uint8_t score_possible_bishop_attack(uint8_t attack_square) const noexcept
 		{
-			uint64_t attacks = bishop_attacks(attack_square);
+#ifdef _USE_MAGIC_BITBOARDS
+			uint64_t attacks = bishop_attacks_magic(attack_square);
+#else
+			uint64_t attacks = bishop_attacks_hq(attack_square);
+#endif
 
 			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 63; } // bishop attacks king
 
@@ -367,7 +418,11 @@ class board
 
 		inline uint8_t score_possible_rook_attack(uint8_t attack_square) const noexcept
 		{
-			uint64_t attacks = rook_attacks(attack_square);
+#ifdef _USE_MAGIC_BITBOARDS
+			uint64_t attacks = rook_attacks_magic(attack_square);
+#else
+			uint64_t attacks = rook_attacks_hq(attack_square);
+#endif
 
 			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 62; } // rook attacks king
 
@@ -386,7 +441,11 @@ class board
 
 		inline uint8_t score_possible_queen_attack(uint8_t attack_square) const noexcept
 		{
-			uint64_t attacks = rook_attacks(attack_square) | bishop_attacks(attack_square);
+#ifdef _USE_MAGIC_BITBOARDS
+			uint64_t attacks = queen_attacks_magic(attack_square);
+#else
+			uint64_t attacks = rook_attacks_hq(attack_square) | bishop_attacks_hq(attack_square);
+#endif
 
 			if (attacks & this->state[side_to_piece_type[!this->side][K]]) { return 61; } // queen attacks king
 

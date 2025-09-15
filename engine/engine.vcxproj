@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\defs\definitions.cpp" />
     <ClCompile Include="src\bitwise\bitwise.cpp" />
     <ClCompile Include="src\board\board.cpp" />
     <ClCompile Include="src\helper\helper.cpp" />
