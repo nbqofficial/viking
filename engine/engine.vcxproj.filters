@@ -31,6 +31,9 @@
     <Filter Include="src\move">
       <UniqueIdentifier>{4347c7f1-775b-411a-8b5f-9662349030b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\nnue">
+      <UniqueIdentifier>{335836c7-45a5-4960-a70e-e1948baeb4b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -60,6 +63,12 @@
     <ClCompile Include="src\defs\definitions.cpp">
       <Filter>src\defs</Filter>
     </ClCompile>
+    <ClCompile Include="src\nnue\misc.cpp">
+      <Filter>src\nnue</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nnue\nnue.cpp">
+      <Filter>src\nnue</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -88,6 +97,12 @@
     </ClInclude>
     <ClInclude Include="src\move\move.h">
       <Filter>src\move</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\misc.h">
+      <Filter>src\nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\nnue.h">
+      <Filter>src\nnue</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

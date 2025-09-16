@@ -166,6 +166,9 @@ int main()
 #ifdef _USE_MAGIC_BITBOARDS
     init::init_all();
 #endif
+#ifdef _USE_NNUE
+    nnue_init("viking.nnue");
+#endif
 	srand(time(0));
 
 	uci u;

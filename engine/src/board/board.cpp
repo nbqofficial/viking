@@ -1004,7 +1004,7 @@ bool board::make_move(uint32_t move, bool save_to_history) noexcept
 	return true;
 }
 
-int board::evaluate() noexcept
+int board::evaluate_norm() noexcept
 {
 	int score = 0;
 	int doubled_pawns = 0;
@@ -1195,4 +1195,56 @@ int board::evaluate() noexcept
 	}
 
 	return (!this->side ? score : -score);
+}
+
+int board::evaluate_nn() noexcept
+{
+	uint64_t bitboard;
+	int piece, square;
+	int pieces[33];
+	int squares[33];
+	int index = 2;
+
+	for (uint8_t bb_piece = P; bb_piece <= k; bb_piece++)
+	{
+		bitboard = this->state[bb_piece];
+
+		while (bitboard)
+		{
+			piece = bb_piece;
+			square = bitwise::lsb(bitboard);
+			if (piece == K)
+			{
+				pieces[0] = nnue_pieces[piece];
+				squares[0] = nnue_squares[square];
+			}
+			else if (piece == k)
+			{
+				pieces[1] = nnue_pieces[piece];
+				squares[1] = nnue_squares[square];
+			}
+			else
+			{
+				pieces[index] = nnue_pieces[piece];
+				squares[index] = nnue_squares[square];
+				index++;
+			}
+
+			bitwise::clear(bitboard, square);
+		}
+	}
+
+	pieces[index] = 0;
+	squares[index] = 0;
+
+	return (nnue_evaluate(this->side, pieces, squares) * (100 - this->fifty_move) / 100);
+}
+
+int board::evaluate() noexcept
+{
+#ifdef _USE_NNUE
+	return this->evaluate_nn();
+#else
+	return this->evaluate_norm();
+#endif
 }

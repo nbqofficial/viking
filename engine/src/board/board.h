@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../move/move.h"
+#include "../nnue/nnue.h"
 
 class board
 {
@@ -488,6 +489,10 @@ class board
 
 			return 0;
 		}
+
+		int evaluate_norm() noexcept;
+
+		int evaluate_nn() noexcept;
 
 		int evaluate() noexcept;
 };

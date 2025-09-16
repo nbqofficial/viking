@@ -154,6 +154,8 @@
     <ClCompile Include="src\board\board.cpp" />
     <ClCompile Include="src\helper\helper.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\nnue\misc.cpp" />
+    <ClCompile Include="src\nnue\nnue.cpp" />
     <ClCompile Include="src\perft\perft.cpp" />
     <ClCompile Include="src\search\search.cpp" />
     <ClCompile Include="src\transpo\transpo.cpp" />
@@ -165,6 +167,8 @@
     <ClInclude Include="src\board\board.h" />
     <ClInclude Include="src\defs\definitions.h" />
     <ClInclude Include="src\helper\helper.h" />
+    <ClInclude Include="src\nnue\misc.h" />
+    <ClInclude Include="src\nnue\nnue.h" />
     <ClInclude Include="src\perft\perft.h" />
     <ClInclude Include="src\search\search.h" />
     <ClInclude Include="src\transpo\transpo.h" />

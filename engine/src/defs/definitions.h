@@ -10,9 +10,18 @@
 #include <immintrin.h>
 #include <array>
 
-#define ENGINE_NAME "Viking XM"
-#define ENGINE_VERSION "XM"
-#define ENGINE_AUTHOR "Dario Pendic (XM)"
+#define _USE_NNUE
+#define _USE_MAGIC_BITBOARDS
+
+#ifdef _USE_NNUE
+#define ENGINE_NAME "Viking NNUE"
+#define ENGINE_VERSION "NNUE"
+#define ENGINE_AUTHOR "Dario Pendic (NNUE)"
+#else
+#define ENGINE_NAME "Viking NORM"
+#define ENGINE_VERSION "NORM"
+#define ENGINE_AUTHOR "Dario Pendic (NORM)"
+#endif
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
 #define four_knights "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 4 4"         // four knights opening
@@ -30,8 +39,6 @@
 #define GAME_PHASE_LOWBOUND 0
 #define GAME_PHASE_HIGHBOUND 6760
 #define VALUE_UNKNOWN 100000
-
-#define _USE_MAGIC_BITBOARDS
 
 typedef struct _board_undo
 {
@@ -245,6 +252,19 @@ static const uint8_t rank_by_square[64] = {
     2, 2, 2, 2, 2, 2, 2, 2,
     1, 1, 1, 1, 1, 1, 1, 1,
     0, 0, 0, 0, 0, 0, 0, 0
+};
+
+static const int nnue_pieces[12] = { 6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7 };
+
+static const int nnue_squares[64] = {
+    a1, b1, c1, d1, e1, f1, g1, h1,
+    a2, b2, c2, d2, e2, f2, g2, h2,
+    a3, b3, c3, d3, e3, f3, g3, h3,
+    a4, b4, c4, d4, e4, f4, g4, h4,
+    a5, b5, c5, d5, e5, f5, g5, h5,
+    a6, b6, c6, d6, e6, f6, g6, h6,
+    a7, b7, c7, d7, e7, f7, g7, h7,
+    a8, b8, c8, d8, e8, f8, g8, h8
 };
 
 static const uint64_t light_squares = 12273903644374837845L;
