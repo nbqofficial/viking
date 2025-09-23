@@ -290,7 +290,7 @@ void board::generate_hashkey() noexcept
 	if (this->side == black) { this->hashkey ^= side_hashkey; }
 }
 
-uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture) noexcept
+uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture, bool is_enpassant) noexcept
 {
 	if (this->pv_line.size() && n_move::get_move_from(this->pv_line[depth]) == from_square && n_move::get_move_to(this->pv_line[depth]) == to_square && n_move::get_move_promoted_piece(this->pv_line[depth]) == promoted_piece)
 	{
@@ -298,10 +298,17 @@ uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece,
 	}
 	if (is_capture)
 	{
-		for (uint8_t i = P; i < K; ++i)
+		if (is_enpassant)
 		{
-			uint64_t bitboard = this->state[side_to_piece_type[!this->side][i]];
-			if (bitwise::check(bitboard, to_square)) { return mvvlva[piece][i]; }
+			return mvvlva[P][P];
+		}
+		else
+		{
+			for (uint8_t i = P; i < K; ++i)
+			{
+				uint64_t bitboard = this->state[side_to_piece_type[!this->side][i]];
+				if (bitwise::check(bitboard, to_square)) { return mvvlva[piece][i]; }
+			}
 		}
 	}
 	else
@@ -396,7 +403,7 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 						if (ep_attacks)
 						{
 							uint8_t target_ep = bitwise::lsb(ep_attacks);
-							moves.push(n_move::encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true)));
+							moves.push(n_move::encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true, true)));
 						}
 					}
 
@@ -648,7 +655,7 @@ void board::generate_pseudolegal(move_list& moves, uint8_t type, int depth) noex
 						if (ep_attacks)
 						{
 							uint8_t target_ep = bitwise::lsb(ep_attacks);
-							moves.push(n_move::encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true)));
+							moves.push(n_move::encode_move(from_square, target_ep, piece, 0, 1, 0, 1, 0, get_piece_score(depth, P, 0, from_square, target_ep, true, true)));
 						}
 					}
 

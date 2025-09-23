@@ -203,7 +203,7 @@ class board
 			return this->hashkey;
 		}
 
-		uint8_t get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture) noexcept;
+		uint8_t get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece, uint8_t from_square, uint8_t to_square, bool is_capture, bool is_enpassant = false) noexcept;
 
 		void generate_pseudolegal(move_list& moves, uint8_t type, int depth) noexcept;
 
