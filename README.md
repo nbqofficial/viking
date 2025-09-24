@@ -48,7 +48,7 @@ Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/T
         <img src="assets/viking_vs_sos.gif" alt="Viking vs SOS, Accuracy 94%" width="250"/><br/>
         <img alt="SOS rating" src="https://img.shields.io/badge/SOS%20Arena-2573%20ELO-blue?style=flat-square"/>
         <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-94%25-yellowgreen?style=flat-square"/><br/>
-        Viking holds a draw against a ~2600 engine.
+        Viking holds a draw against a ~2600 engine as black.
       </td>
     </tr>
   </table>
