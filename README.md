@@ -27,7 +27,7 @@ Viking is programmed and fine-tuned in a way to play **aggressive** interesting 
 Viking's **playing strength** is not really known at this point and more robust testing is required to confirm. I suspect it is around **2550 ELO** for the **NNUE** version, and around **2100 ELO** for the **hand-crafted** evaluation.
 Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/TSCP) by **Tom Kerrigan** and stronger engines like [Thor's Hammer](https://www.chessprogramming.org/Thor%27s_Hammer) by **Toma Roncevic** (another Croatian-made chess engine).
 
-#### The following games accuracy was analyzed using Stockfish 17.1 NNUE (3645 ELO)
+#### The following 3+2 blitz games accuracy were analyzed using Stockfish 17.1 NNUE (3645 ELO)
 
 <p align="center">
   <table>
