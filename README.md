@@ -27,6 +27,31 @@ Viking is programmed and fine-tuned in a way to play **aggressive** interesting 
 Viking's **playing strength** is not really known at this point and more robust testing is required to confirm. I suspect it is around **2550 ELO** for the **NNUE** version, and around **2100 ELO** for the **hand-crafted** evaluation.
 Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/TSCP) by **Tom Kerrigan** and stronger engines like [Thor's Hammer](https://www.chessprogramming.org/Thor%27s_Hammer) by **Toma Roncevic** (another Croatian-made chess engine).
 
+#### The following games accuracy was analyzed using Stockfish 17.1 NNUE (3645 ELO)
+
+<p align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="assets/viking_vs_tscp.gif" alt="Game 1" width="250"/><br/>
+        <strong>Accuracy: 95%</strong><br/>
+        Viking outplays TSCP and converts to a winning endgame.
+      </td>
+      <td align="center">
+        <img src="assets/viking_vs_thors.gif" alt="Game 2" width="250"/><br/>
+        <strong>Accuracy: 97%</strong><br/>
+        A positional masterpiece forcing Thor's Hammer to throw the towel.
+      </td>
+      <td align="center">
+        <img src="assets/viking_vs_sos.gif" alt="Game 3" width="250"/><br/>
+        <strong>Accuracy: 94%</strong><br/>
+        Viking holds it's own against nearly 2600 rated chess engine.
+      </td>
+    </tr>
+  </table>
+</p>
+
+
 ## Board representation
 Viking uses the **bitboard approach** for the board representation. Internally it keeps track of **12 bitboards** (one per piece type for each color), as well as **3 bitboards** for occupied squares (white, black and both). The internal board class
 also has flags for **side-to-move**, **castling rights**, **en passant**, **fifty move rule** counter etc. Board class also makes it convinient to store past move **history**, as well as heuristics such as **killer** and **history moves**. **Zobrist hashkey** is used 
