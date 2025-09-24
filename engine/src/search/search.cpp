@@ -69,7 +69,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 	if (inchk) { depth++; }
 	
 #ifdef _USE_NNUE
-	if (!inchk && depth == 1)
+	if (!pv_node && !inchk && depth == 1)
 	{
 		int stand_pat = b.evaluate();
 		const int RAZOR_MARGIN = 150;
@@ -211,7 +211,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 search::search()
 {
-	if (this->transpo_table.allocate(128)) { this->transpo_table.reset(); }
+	if (this->transpo_table.allocate(256)) { this->transpo_table.reset(); }
 }
 
 search::~search()

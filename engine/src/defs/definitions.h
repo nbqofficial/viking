@@ -15,12 +15,12 @@
 
 #ifdef _USE_NNUE
 #define ENGINE_NAME "Viking NNUE"
-#define ENGINE_VERSION "NNUE"
-#define ENGINE_AUTHOR "Dario Pendic (NNUE)"
+#define ENGINE_VERSION "R1"
+#define ENGINE_AUTHOR "Dario Pendic"
 #else
 #define ENGINE_NAME "Viking NORM"
-#define ENGINE_VERSION "NORM"
-#define ENGINE_AUTHOR "Dario Pendic (NORM)"
+#define ENGINE_VERSION "R1"
+#define ENGINE_AUTHOR "Dario Pendic"
 #endif
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"			        // startpos
