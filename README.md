@@ -27,29 +27,33 @@ Viking is programmed and fine-tuned in a way to play **aggressive** interesting 
 Viking's **playing strength** is not really known at this point and more robust testing is required to confirm. I suspect it is around **2550 ELO** for the **NNUE** version, and around **2100 ELO** for the **hand-crafted** evaluation.
 Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/TSCP) by **Tom Kerrigan** and stronger engines like [Thor's Hammer](https://www.chessprogramming.org/Thor%27s_Hammer) by **Toma Roncevic** (another Croatian-made chess engine).
 
-#### The following 3+2 blitz games accuracy were analyzed using Stockfish 17.1 NNUE (3645 ELO)
-
+#### Accuracy of the following games was analyzed using Stockfish 17.1 NNUE
+### Blitz 3+2
 <p align="center">
   <table>
     <tr>
       <td align="center">
-        <img src="assets/viking_vs_tscp.gif" alt="Game 1" width="250"/><br/>
-        <strong>Accuracy: 95%</strong><br/>
+        <img src="assets/viking_vs_tscp.gif" alt="Viking vs TSCP, Accuracy 95%" width="250"/><br/>
+        <img alt="TSCP rating" src="https://img.shields.io/badge/TSCP-1800%20ELO-blue?style=flat-square"/>
+        <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-95%25-brightgreen?style=flat-square"/><br/>
         Viking outplays TSCP and converts to a winning endgame.
       </td>
       <td align="center">
-        <img src="assets/viking_vs_thors.gif" alt="Game 2" width="250"/><br/>
-        <strong>Accuracy: 97%</strong><br/>
-        A positional masterpiece forcing Thor's Hammer to throw the towel.
+        <img src="assets/viking_vs_thors.gif" alt="Viking vs Thor's Hammer, Accuracy 97%" width="250"/><br/>
+        <img alt="Thor's Hammer rating" src="https://img.shields.io/badge/Thor's%20Hammer-2330%20ELO-blue?style=flat-square"/>
+        <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-97%25-brightgreen?style=flat-square"/><br/>
+        A positional masterpiece forcing Thor's Hammer to resign.
       </td>
       <td align="center">
-        <img src="assets/viking_vs_sos.gif" alt="Game 3" width="250"/><br/>
-        <strong>Accuracy: 94%</strong><br/>
-        Viking holds a draw against nearly 2600 rated chess engine.
+        <img src="assets/viking_vs_sos.gif" alt="Viking vs SOS, Accuracy 94%" width="250"/><br/>
+        <img alt="SOS rating" src="https://img.shields.io/badge/SOS%20Arena-2573%20ELO-blue?style=flat-square"/>
+        <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-94%25-yellowgreen?style=flat-square"/><br/>
+        Viking holds a draw against a ~2600 engine.
       </td>
     </tr>
   </table>
 </p>
+
 
 
 ## Board representation
