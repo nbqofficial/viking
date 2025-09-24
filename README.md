@@ -28,12 +28,12 @@ Viking's **playing strength** is not really known at this point and more robust 
 Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/TSCP) by **Tom Kerrigan** and stronger engines like [Thor's Hammer](https://www.chessprogramming.org/Thor%27s_Hammer) by **Toma Roncevic** (another Croatian-made chess engine).
 
 ## Board representation
-Viking uses the **bitboard approach** for the board representation. Internally it keeps track of **12 bitboards** (one per piece type for each color), as well as **3 bitboard** for occupied squares (white, black and both). The internal board class
+Viking uses the **bitboard approach** for the board representation. Internally it keeps track of **12 bitboards** (one per piece type for each color), as well as **3 bitboards** for occupied squares (white, black and both). The internal board class
 also has flags for **side-to-move**, **castling rights**, **en passant**, **fifty move rule** counter etc. Board class also makes it convinient to store past move **history**, as well as heuristics such as **killer** and **history moves**. **Zobrist hashkey** is used 
 to differenciate each unique chess position and aids in Viking's **transposition table** implementation. The choice for this board representation approach is clear: ***speed and performance***.
 
 ## Move generator
-Viking is using **precomputed bitboard attack tables** for generating **pawn**, **knight** and **king** moves. For slider pieces (**bishops**, **rooks** and **queens**), Viking uses **Magic bitboards** by default, but it can also be compiled to use **Hyperbola Quintessence
+Viking is using **precomputed bitboard attack tables** for generating **pawn**, **knight** and **king** moves. For slider pieces (**bishops**, **rooks** and **queens**), Viking uses **Magic bitboards** by default, but it can also be compiled to use **Hyperbola Quintessence**
 move generation. That being said, Viking with Magic bitboards produces **PERFT** speeds of around ***25M nodes/second***, whereas Hyperbola Quintessence does around ***18M nodes/second*** on regular consumer-grade hardware.
 
 ## Search
