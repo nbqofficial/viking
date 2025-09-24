@@ -14,9 +14,9 @@
 #define _USE_MAGIC_BITBOARDS
 
 #ifdef _USE_NNUE
-#define ENGINE_NAME "Viking NNUE5"
-#define ENGINE_VERSION "NNUE4"
-#define ENGINE_AUTHOR "Dario Pendic (NNUE5)"
+#define ENGINE_NAME "Viking NNUE"
+#define ENGINE_VERSION "NNUE"
+#define ENGINE_AUTHOR "Dario Pendic (NNUE)"
 #else
 #define ENGINE_NAME "Viking NORM"
 #define ENGINE_VERSION "NORM"
