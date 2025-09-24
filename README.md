@@ -45,7 +45,7 @@ Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/T
       <td align="center">
         <img src="assets/viking_vs_sos.gif" alt="Game 3" width="250"/><br/>
         <strong>Accuracy: 94%</strong><br/>
-        Viking holds it's own against nearly 2600 rated chess engine.
+        Viking holds a draw against nearly 2600 rated chess engine.
       </td>
     </tr>
   </table>
