@@ -23,7 +23,7 @@ int search::quiescence(board& b, int alpha, int beta)
 		b.preserve_board(undo_board);
 		b.make_move(moves.m_moves[i], false);
 
-		if (b.is_repetition())
+		if (moves_size > 1 && b.is_repetition())
 		{
 			b.restore_board(undo_board);
 			continue;
@@ -128,7 +128,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		b.preserve_board(undo_board);
 		b.make_move(moves.m_moves[i], false);
 
-		if (b.is_repetition()) 
+		if (moves_size > 1 && b.is_repetition()) 
 		{ 
 			b.restore_board(undo_board);
 			continue; 
