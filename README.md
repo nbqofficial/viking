@@ -160,3 +160,4 @@ Special thanks to
 - [Bluefeversoft](https://github.com/bluefeversoft) for actually getting me hooked to computer chess, years ago with Vice tutorials.
 - [Maksim Korzh](https://github.com/maksimkorzh) for amazing bitboard chess engine tutorial series which inspired me to improve on my earlier efforts.
 - [Stockfish](https://github.com/official-stockfish) for some implementation ideas and for borrowing their NNUE files.
+- [Chessprogramming Wiki](https://www.chessprogramming.org/Main_Page) for an amazing collection of chess programming knowledge.
