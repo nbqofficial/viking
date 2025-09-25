@@ -54,6 +54,31 @@ Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/T
   </table>
 </p>
 
+### Rapid 30+5
+<p align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="assets/viking_vs_octochess.gif" alt="Viking vs Octochess, Accuracy 95%" width="250"/><br/>
+        <img alt="Octochess rating" src="https://img.shields.io/badge/vs%20Octochess-2735%20ELO-blue?style=flat-square"/><br/>
+        <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-95%25-brightgreen?style=flat-square"/><br/>
+        Viking shows great positional understanding with this brilliant win.
+      </td>
+      <td align="center">
+        <img src="assets/viking_vs_anmon.gif" alt="Viking vs AnMon, Accuracy 98%" width="250"/><br/>
+        <img alt="AnMon rating" src="https://img.shields.io/badge/vs%20AnMon-2538%20ELO-blue?style=flat-square"/><br/>
+        <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-98%25-brightgreen?style=flat-square"/><br/>
+        Viking manages to hold a draw in a very tough positional battle.
+      </td>
+      <td align="center">
+        <img src="assets/viking_vs_beowulf.gif" alt="Viking vs Beowulf, Accuracy 95%" width="250"/><br/>
+        <img alt="Beowulf rating" src="https://img.shields.io/badge/vs%20Beowulf-2203%20ELO-blue?style=flat-square"/><br/>
+        <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-95%25-brightgreen?style=flat-square"/><br/>
+        Amazing attacking game featuring three sacrifices forcing Beowulf to resign.
+      </td>
+    </tr>
+  </table>
+</p>
 
 
 ## Board representation
