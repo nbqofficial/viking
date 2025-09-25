@@ -180,7 +180,7 @@ Here is a list of possible commands you can use with Viking **command line inter
 ### debug
 *Tells the engine to display verbose debug logs when analyzing the chess position.*
 ### testpos
-*Engine will check it's optimal move to see if it is among top 3 Stockfish 17.1 NNUE recommendations for accuracy.
+*Engine will check it's optimal move to see if it is among top 3 Stockfish 17.1 NNUE recommendations for accuracy.*
 - **testpos 5000** → Engine will search 5 seconds per position inside testpos.csv.
 
 ## Acknowledgements
