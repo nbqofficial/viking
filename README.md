@@ -68,7 +68,7 @@ Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/T
         <img src="assets/viking_vs_anmon.gif" alt="Viking vs AnMon, Accuracy 98%" width="250"/><br/>
         <img alt="AnMon rating" src="https://img.shields.io/badge/vs%20AnMon-2538%20ELO-blue?style=flat-square"/><br/>
         <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-98%25-brightgreen?style=flat-square"/><br/>
-        Viking manages to hold a draw in a very tough positional battle.
+        Viking manages to hold a draw with very precise and accurate positional play.
       </td>
       <td align="center">
         <img src="assets/viking_vs_beowulf.gif" alt="Viking vs Beowulf, Accuracy 95%" width="250"/><br/>
