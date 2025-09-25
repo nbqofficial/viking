@@ -210,7 +210,9 @@ void uci::parse_testpos(char* line_in)
 	n_utils::n_data::c_dataframe df("testpos.csv");
 
 	std::vector<std::string> fens = df.at<std::string>("fen");
-	std::vector<std::string> moves = df.at<std::string>("best_move");
+	std::vector<std::string> best_moves = df.at<std::string>("best_move");
+	std::vector<std::string> best_moves2 = df.at<std::string>("best_move2");
+	std::vector<std::string> best_moves3 = df.at<std::string>("best_move2");
 
 	for (size_t i = 0; i < fens.size(); ++i)
 	{
@@ -223,18 +225,18 @@ void uci::parse_testpos(char* line_in)
 		uci_info.timeset = true;
 		uci_info.stop_time = uci_info.start_time + movetime;
 
-		uint32_t best_move = this->sc.go(this->b, uci_info.depth, true, this->debug);
+		uint32_t best_move = this->sc.go(this->b, uci_info.depth, false, this->debug);
 		std::string move_str = this->b.move_to_string(best_move);
 
 		total += 1.0;
-		if (move_str == moves[i])
+		if (move_str == best_moves[i] || move_str == best_moves2[i] || move_str == best_moves3[i])
 		{
 			correct += 1.0;
-			printf("Correct: %s %s [Accuracy: %.2f%%]\n", move_str.c_str(), moves[i].c_str(), correct / total * 100.0);
+			printf("Correct: %s [%s %s %s] [Accuracy: %.2f%%]\n", move_str.c_str(), best_moves[i].c_str(), best_moves2[i].c_str(), best_moves3[i].c_str(), correct / total * 100.0);
 		}
 		else
 		{
-			printf("Incorrect: %s %s [Accuracy: %.2f%%]\n", move_str.c_str(), moves[i].c_str(), correct / total * 100.0);
+			printf("Incorrect: %s [%s %s %s] [Accuracy: %.2f%%]\n", move_str.c_str(), best_moves[i].c_str(), best_moves2[i].c_str(), best_moves3[i].c_str(), correct / total * 100.0);
 		}
 		printf("\n");
 	}
