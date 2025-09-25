@@ -163,14 +163,14 @@ Here is a list of possible commands you can use with Viking **command line inter
 - **moves** → A list of UCI move strings to play from that starting point.
 ### go
 *Tells the engine to start calculating the best move given the current position.*
-- **go**
-- **go depth 10**
-- **go movetime 5000**
-- **go wtime 60000 btime 60000 winc 1000 binc 1000**
-- **go infinite**
+- **go** → Engine will search infinitelly or until stopped.
+- **go depth 10** → Engine will search up to depth 10 and then stop.
+- **go movetime 5000** → Engine will search for 5 seconds and then output the best move.
+- **go wtime 60000 btime 60000 winc 1000 binc 1000** → Engine will decide it's own search time according to time left.
+- **go infinite** → Engine will search indefinitelly or until stopped.
 ### perft
 *Runs engine performance testing from current position to check the overall traversal speed and move generator accuracy.*
-- **perft 6**
+- **perft 6** → Engine will perform perft test up to depth of 6.
 ### displayboard
 *Displays the current chess position to the command line interface.*
 ### displaymoves
@@ -179,6 +179,9 @@ Here is a list of possible commands you can use with Viking **command line inter
 *Causes the engine to display the chess position after making each move.*
 ### debug
 *Tells the engine to display verbose debug logs when analyzing the chess position.*
+### testpos
+*Engine will compare it's first optimal move to Stockfish 17.1 NNUE output to check for accuracy.*
+- **testpos 5000** → Engine will search 5 seconds per position inside testpos.csv.
 
 ## Acknowledgements
 Special thanks to 
