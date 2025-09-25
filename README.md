@@ -24,7 +24,7 @@ Viking is a **free and strong UCI chess engine** that can be used to analyze che
 Viking is programmed and fine-tuned in a way to play **aggressive** interesting chess. It will **avoid draws** at all cost, even if that results in a loss. Playing in this fashion makes the games **very entertaining and fun to watch**.
 
 ## Playing strength
-Viking's **playing strength** is not really known at this point and more robust testing is required to confirm. I suspect it is around **2550 ELO** for the **NNUE** version, and around **2100 ELO** for the **hand-crafted** evaluation.
+Viking's **playing strength** is not really known at this point and more robust testing is required to confirm. I suspect it is around **2550 ELO** for the Stockfish **NNUE** version, and around **2100 ELO** for the **hand-crafted** evaluation.
 Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/TSCP) by **Tom Kerrigan** and stronger engines like [Thor's Hammer](https://www.chessprogramming.org/Thor%27s_Hammer) by **Toma Roncevic** (another Croatian-made chess engine).
 
 #### Accuracy of the following games was analyzed using Stockfish 17.1 NNUE
@@ -34,19 +34,19 @@ Viking NNUE version easily obliterates [TSCP](https://www.chessprogramming.org/T
     <tr>
       <td align="center">
         <img src="assets/viking_vs_tscp.gif" alt="Viking vs TSCP, Accuracy 95%" width="250"/><br/>
-        <img alt="TSCP rating" src="https://img.shields.io/badge/TSCP-1800%20ELO-blue?style=flat-square"/>
+        <img alt="TSCP rating" src="https://img.shields.io/badge/vs%20TSCP-1800%20ELO-blue?style=flat-square"/><br/>
         <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-95%25-brightgreen?style=flat-square"/><br/>
         Viking outplays TSCP and converts to a winning endgame.
       </td>
       <td align="center">
         <img src="assets/viking_vs_thors.gif" alt="Viking vs Thor's Hammer, Accuracy 97%" width="250"/><br/>
-        <img alt="Thor's Hammer rating" src="https://img.shields.io/badge/Thor's%20Hammer-2330%20ELO-blue?style=flat-square"/>
+        <img alt="Thor's Hammer rating" src="https://img.shields.io/badge/vs%20Thor's%20Hammer-2330%20ELO-blue?style=flat-square"/><br/>
         <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-97%25-brightgreen?style=flat-square"/><br/>
         A positional masterpiece forcing Thor's Hammer to resign.
       </td>
       <td align="center">
         <img src="assets/viking_vs_sos.gif" alt="Viking vs SOS, Accuracy 94%" width="250"/><br/>
-        <img alt="SOS rating" src="https://img.shields.io/badge/SOS%20Arena-2573%20ELO-blue?style=flat-square"/>
+        <img alt="SOS rating" src="https://img.shields.io/badge/vs%20SOS%20Arena-2573%20ELO-blue?style=flat-square"/><br/>
         <img alt="Accuracy" src="https://img.shields.io/badge/Accuracy-94%25-yellowgreen?style=flat-square"/><br/>
         Viking holds a draw against a ~2600 engine as black.
       </td>
@@ -83,7 +83,9 @@ In order to make **alpha-beta pruning** as **efficient** as possible, **ordering
 Combining all of these **move ordering techniques** causes Viking to pick the **optimal move** within the **first few moves** around **85%** of the time meaning that only about **15%** of the time, it must go through more than a **couple of moves** to obtain a **cuttoff**.
 
 ## Evaluation
-Viking has two options for position evaluation: **Efficiently Updatable Neural Networks (NNUE)** or **hand-crafted** evaluation. NNUE version is quite a bit stronger than hand-crafted one. Below you can see what the hand-crafted evaluation uses.
+Viking has two options for position evaluation: **Efficiently Updatable Neural Networks (NNUE)** or **hand-crafted** evaluation. NNUE version is quite a bit stronger and is using this [Stockfish NNUE](https://github.com/official-stockfish/networks/blob/master/nn-eba324f53044.nnue) renamed to **viking.nnue**
+for **general aesthetics**. I am planning on introducing a **config** file to hold this, so that the original file names can stay the same.
+Below you can see what the hand-crafted evaluation uses.
 
 #### General
 - **Material** - Value of each piece on the board weighted by opening/endgame phases.
@@ -154,4 +156,7 @@ Here is a list of possible commands you can use with Viking **command line inter
 *Tells the engine to display verbose debug logs when analyzing the chess position.*
 
 ## Acknowledgements
-Special thanks to [Maksim Korzh](https://github.com/maksimkorzh) and [Bluefeversoft](https://github.com/bluefeversoft) for great tutorials and explanations.
+Special thanks to 
+- [Bluefeversoft](https://github.com/bluefeversoft) for actually getting me hooked to computer chess, years ago with Vice tutorials.
+- [Maksim Korzh](https://github.com/maksimkorzh) for amazing bitboard chess engine tutorial series which inspired me to improve on my earlier efforts.
+- [Stockfish](https://github.com/official-stockfish) for some implementation ideas and for borrowing their NNUE files.
