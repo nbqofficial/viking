@@ -34,5 +34,7 @@ class uci
 
 		void parse_displayaftermove();
 
+		void parse_testpos(char* line_in);
+
 		void uci_loop();
 };

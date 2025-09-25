@@ -9,6 +9,9 @@
 #include <intrin.h>
 #include <immintrin.h>
 #include <array>
+#include <variant>
+#include <unordered_map>
+#include <fstream>
 
 #define _USE_NNUE
 #define _USE_MAGIC_BITBOARDS

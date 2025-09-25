@@ -189,6 +189,57 @@ void uci::parse_displayaftermove()
 	}
 }
 
+void uci::parse_testpos(char* line_in)
+{
+	line_in += 8;
+	char* ptr = line_in;
+	int movetime = -1;
+
+	if (ptr == NULL)
+	{
+		movetime = 500;
+	}
+	else
+	{
+		movetime = atoi(ptr);
+	}
+
+	double total = 0;
+	double correct = 0;
+
+	n_utils::n_data::c_dataframe df("testpos.csv");
+
+	std::vector<std::string> fens = df.at<std::string>("fen");
+	std::vector<std::string> moves = df.at<std::string>("best_move");
+
+	for (size_t i = 0; i < fens.size(); ++i)
+	{
+		printf("Test position %lld: %s\n", i, fens[i].c_str());
+		std::string pos = "position fen " + fens[i];
+		position((char*)pos.c_str());
+
+		uci_info.start_time = helper::get_time_ms();
+		uci_info.depth = MAX_DEPTH;
+		uci_info.timeset = true;
+		uci_info.stop_time = uci_info.start_time + movetime;
+
+		uint32_t best_move = this->sc.go(this->b, uci_info.depth, true, this->debug);
+		std::string move_str = this->b.move_to_string(best_move);
+
+		total += 1.0;
+		if (move_str == moves[i])
+		{
+			correct += 1.0;
+			printf("Correct: %s %s [Accuracy: %.2f%%]\n", move_str.c_str(), moves[i].c_str(), correct / total * 100.0);
+		}
+		else
+		{
+			printf("Incorrect: %s %s [Accuracy: %.2f%%]\n", move_str.c_str(), moves[i].c_str(), correct / total * 100.0);
+		}
+		printf("\n");
+	}
+}
+
 void uci::uci_loop()
 {
 	setvbuf(stdin, NULL, _IONBF, BUFSIZ);
@@ -260,6 +311,10 @@ void uci::uci_loop()
 		else if (!strncmp(line, "debug", 5))
 		{
 			parse_debug();
+		}
+		else if (!strncmp(line, "testpos", 7))
+		{
+			parse_testpos(line);
 		}
 	}
 }

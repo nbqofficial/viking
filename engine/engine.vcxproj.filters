@@ -34,6 +34,12 @@
     <Filter Include="src\nnue">
       <UniqueIdentifier>{335836c7-45a5-4960-a70e-e1948baeb4b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\data">
+      <UniqueIdentifier>{5768ae64-a3e2-4fa3-b691-fd7e1f5e2d36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\logger">
+      <UniqueIdentifier>{fa766730-e7c5-4d86-9561-a188f3f5df72}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -69,6 +75,12 @@
     <ClCompile Include="src\nnue\nnue.cpp">
       <Filter>src\nnue</Filter>
     </ClCompile>
+    <ClCompile Include="src\data\dataframe.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\logger\logger.cpp">
+      <Filter>src\logger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defs\definitions.h">
@@ -103,6 +115,12 @@
     </ClInclude>
     <ClInclude Include="src\nnue\nnue.h">
       <Filter>src\nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\data\dataframe.h">
+      <Filter>src\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\logger\logger.h">
+      <Filter>src\logger</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

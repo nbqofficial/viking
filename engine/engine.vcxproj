@@ -149,10 +149,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\data\dataframe.cpp" />
     <ClCompile Include="src\defs\definitions.cpp" />
     <ClCompile Include="src\bitwise\bitwise.cpp" />
     <ClCompile Include="src\board\board.cpp" />
     <ClCompile Include="src\helper\helper.cpp" />
+    <ClCompile Include="src\logger\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\nnue\misc.cpp" />
     <ClCompile Include="src\nnue\nnue.cpp" />
@@ -162,6 +164,8 @@
     <ClCompile Include="src\uci\uci.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\data\dataframe.h" />
+    <ClInclude Include="src\logger\logger.h" />
     <ClInclude Include="src\move\move.h" />
     <ClInclude Include="src\bitwise\bitwise.h" />
     <ClInclude Include="src\board\board.h" />
