@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Viking GUI</title>
+  <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="left">
+      <div id="board-wrap" style="position: relative; width: 640px; height: 640px;">
+        <div id="board" style="width: 640px"></div>
+        <svg id="arrow-layer" viewBox="0 0 640 640" preserveAspectRatio="none">
+          <defs>
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="7" refY="5"
+                    markerWidth="4" markerHeight="4" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#42a5f5" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <div id="controls">
+        <button id="btn-load">Load engine…</button>
+        <button id="btn-new">New game</button>
+        <button id="btn-undo">Undo</button>
+        <button id="btn-flip">Flip</button>
+        <button id="btn-pgn">Import PGN…</button>
+        <button id="btn-pgn-export">Export PGN</button>
+        <button id="btn-analyze">Analyze</button>
+        <span class="sep"></span>
+        <button id="btn-first" title="First (Home)">⏮</button>
+        <button id="btn-prev" title="Previous (←)">◀</button>
+        <button id="btn-next" title="Next (→)">▶</button>
+        <button id="btn-last" title="Last (End)">⏭</button>
+        <input id="pgn-file" type="file" accept=".pgn,text/plain" style="display:none" />
+        <span class="sep"></span>
+        <button id="btn-go">Go</button>
+        <button id="btn-stop">Stop</button>
+        <button id="btn-selfplay">Selfplay</button>
+        <label>movetime (ms)
+          <input id="movetime" type="number" value="2000" min="100" step="100" />
+        </label>
+        <label>depth
+          <input id="depth" type="number" value="" min="1" max="64" />
+        </label>
+        <label><input id="auto" type="checkbox" /> engine plays opponent</label>
+        <label><input id="analyze" type="checkbox" /> analyze continuously</label>
+      </div>
+      <div id="fen-row">
+        <input id="fen" type="text" placeholder="Paste FEN and press Enter" />
+        <span id="status"></span>
+      </div>
+      <div id="chart-wrap">
+        <svg id="eval-chart" viewBox="0 0 640 140" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+
+    <div id="right">
+      <div id="engine-header">
+        <img id="logo" src="logo.png" alt="Viking" />
+        <div id="engine-name">No engine loaded</div>
+        <div id="engine-eval">—</div>
+      </div>
+      <div id="accuracy-panel" style="display:none">
+        <div id="accuracy-title">PGN analysis</div>
+        <div id="accuracy-progress"></div>
+        <div id="accuracy-summary"></div>
+      </div>
+      <div id="moves-header">Moves</div>
+      <div id="moves-list"><div class="moves-empty">No game loaded</div></div>
+      <div id="pv-line">pv: —</div>
+      <div id="info-grid">
+        <div>depth <span id="i-depth">—</span></div>
+        <div>seldepth <span id="i-seldepth">—</span></div>
+        <div>score <span id="i-score">—</span></div>
+        <div>nodes <span id="i-nodes">—</span></div>
+        <div>nps <span id="i-nps">—</span></div>
+        <div>time <span id="i-time">—</span></div>
+        <div>hashfull <span id="i-hashfull">—</span></div>
+      </div>
+      <div id="log-header">Engine log</div>
+      <pre id="log"></pre>
+      <div id="send-row">
+        <input id="send-input" type="text" placeholder="Send raw UCI command…" />
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chess.js@0.12.1/chess.min.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

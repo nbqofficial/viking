@@ -1,0 +1,20 @@
+{
+  "name": "viking-gui",
+  "version": "0.1.0",
+  "description": "Desktop GUI for the Viking UCI chess engine",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "hr.viking.gui",
+    "productName": "Viking GUI",
+    "files": ["main.js", "preload.js", "renderer/**/*"],
+    "win": { "target": "nsis" }
+  }
+}

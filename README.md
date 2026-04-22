@@ -10,7 +10,7 @@
 </div>
 
 ## Overview
-Viking is a **free and strong UCI chess engine** that can be used to analyze chess positions and come up with the optimal move. Viking does not come with graphical user interface and it is up to the user to choose a GUI of their liking.
+Viking is a **free and strong UCI chess engine** that can be used to analyze chess positions and come up with the optimal move. Viking ships with its own lightweight desktop **GUI** (see [Viking GUI](#viking-gui) below), and because it speaks UCI it also works with any third-party GUI of your choice.
 <p align="center">
   <a href="https://github.com/rooklift/nibbler">
     <img src="https://img.shields.io/badge/Nibbler-Download-blue?style=for-the-badge" alt="Nibbler"/>
@@ -182,6 +182,60 @@ Here is a list of possible commands you can use with Viking **command line inter
 ### testpos
 *Engine will check it's optimal move to see if it is among top 3 Stockfish 17.1 NNUE recommendations for accuracy.*
 - **testpos 5000** → Engine will search 5 seconds per position inside testpos.csv.
+
+## Viking GUI
+Viking comes with a purpose-built desktop **GUI** (under the `gui/` folder) that lets you load the engine, play against it, watch it think, and analyze full games — without having to install Arena or Nibbler. It's built with **Electron** so it's cross-platform in principle, but the primary target is **Windows**.
+
+### Features
+- **Load any UCI engine** via a file dialog — not just Viking.
+- **Interactive board** with legal-move hints shown when you pick up a piece and last-move highlighting.
+- **Live info panel** on the right with `depth`, `score`, `nodes`, `nps`, `time`, and the full principal variation, plus a raw UCI log and a free-form command input.
+- **Best-move arrow** drawn on the board while the engine is thinking — including a blue pill showing the current evaluation from White's POV. The arrow sticks around after `bestmove` until the position changes, and never renders an illegal move.
+- **Analyze continuously** — toggle an infinite search that automatically restarts whenever the position changes (your move, undo, FEN paste).
+- **Engine plays opponent** — let the engine reply to each of your moves using the configured `depth`/`movetime`.
+- **Selfplay** — the engine plays both sides from the current position; stops on checkmate, stalemate, insufficient material, 3-fold repetition, or the 50-move rule.
+- **FEN load** — paste any FEN into the input below the board to jump to that position (Enter or plain paste both work).
+- **Evaluation graph** under the board that tracks White-POV eval move-by-move as the game progresses.
+- **Import PGN** — load a game from a `.pgn` file into the GUI without running any engine analysis.
+- **Moves list + navigation** — SAN moves on the side, click any to jump, or use ⏮ ◀ ▶ ⏭ / arrow keys / Home / End. Making a move mid-line forks the game.
+- **Analyze (PGN)** — walks the loaded game through the engine at the configured depth/movetime and computes:
+  - **White / Black accuracy %** (Lichess formula)
+  - **Top-1 match** count per side
+  - **Inaccuracies / Mistakes / Blunders** buckets per side
+  - Per-move detail (SAN, engine move, cp before→after, cp loss, accuracy, ✓ on match) in the engine log.
+- **Export PGN** — save the current game to a `.pgn` file with engine name, date, result, and SetUp/FEN headers when starting from a custom position.
+
+### Setup (Windows)
+1. **Install Node.js** (once) — grab the LTS installer from https://nodejs.org, run it, then open a new PowerShell or `cmd` window and check:
+   ```
+   node -v
+   npm -v
+   ```
+2. **Build the engine.** Open `viking.sln` in Visual Studio, select `Release | x64`, Build. The binary typically lands at `x64\Release\engine.exe`.
+3. **Install the GUI's dependencies** (once):
+   ```
+   cd gui
+   npm install
+   ```
+   This pulls Electron and friends into `gui\node_modules`.
+4. **Start the GUI**:
+   ```
+   npm start
+   ```
+   An Electron window opens. Click **Load engine…**, browse to your `engine.exe`, and you're connected — the log shows `uciok` and the engine name appears at the top of the right panel.
+
+Want a standalone installer? `npm run dist` produces an NSIS `.exe` installer under `gui\dist\`.
+
+### Typical workflows
+- **Play a game against the engine** — New game → check *engine plays opponent* → set a `movetime` (e.g. 2000 ms) → start moving pieces. Export PGN when done.
+- **Analyze your moves live** — set the board to the position of interest (drag pieces or paste a FEN), check *analyze continuously*. The arrow + eval pill update in real time as the search deepens.
+- **Watch the engine play itself** — set `depth`/`movetime`, click **Selfplay**. Great for stress-testing.
+- **Post-game review** — **Import PGN** your game → click **Analyze** → walk through moves with ◀ / ▶ and look for the blunders flagged in the summary.
+
+### Notes & caveats
+- The chessboard, chess.js, and jQuery are loaded from CDN at runtime so you need internet for a first run. For a fully offline build, install them via npm and switch the `<script>`/`<link>` tags in `gui/renderer/index.html` to local paths.
+- PGN analysis accuracy is only as meaningful as the `depth`/`movetime` setting — shallow searches will produce noisy cp-loss numbers.
+- `analyze continuously`, `engine plays opponent`, and **Selfplay** are mutually exclusive by design; starting one cancels the others.
 
 ## Acknowledgements
 Special thanks to 
