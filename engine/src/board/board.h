@@ -16,7 +16,7 @@ class board
 		uint64_t hashkey;
 		std::vector<board_undo> history;
 		uint32_t killer_moves[2][64];
-		uint8_t history_moves[12][64];
+		int32_t history_moves[12][64];
 
 	public:
 		
@@ -176,9 +176,11 @@ class board
 			this->killer_moves[0][depth] = move;
 		}
 
-		inline void add_history_move(uint8_t score, uint8_t piece, uint8_t to_square) noexcept
+		inline void add_history_move(int depth, uint8_t piece, uint8_t to_square) noexcept
 		{
-			this->history_moves[piece][to_square] = score;
+			int32_t& h = this->history_moves[piece][to_square];
+			h += depth * depth;
+			if (h > 10000) { h = 10000; }
 		}
 
 		inline uint8_t get_side() const noexcept
@@ -325,7 +327,19 @@ class board
 			return move_str;
 		}
 
-		bool make_move(uint32_t move, bool save_to_history) noexcept;
+		bool make_move(uint32_t move, bool save_to_history, board_delta* delta) noexcept;
+
+		inline bool make_move(uint32_t move, bool save_to_history) noexcept
+		{
+			return make_move(move, save_to_history, nullptr);
+		}
+
+		inline bool make_move(uint32_t move, board_delta& delta) noexcept
+		{
+			return make_move(move, false, &delta);
+		}
+
+		void unmake_move(uint32_t move, const board_delta& delta) noexcept;
 
 		inline int get_game_phase_score() const noexcept
 		{

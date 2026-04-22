@@ -15,9 +15,13 @@ class search
 			long long razoring_cuttoff = 0;
 			transpo transpo_table;
 
+			uint32_t pv_table[MAX_DEPTH + 1][MAX_DEPTH + 1];
+			int pv_length[MAX_DEPTH + 1];
+			int lmr_table[MAX_DEPTH + 1][64];
+
 			int quiescence(board& b, int alpha, int beta);
 
-			int negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, bool null_move);
+			int negamax(board& b, int depth, int alpha, int beta, int ply, bool null_move);
 
 	public:
 

@@ -54,6 +54,15 @@ typedef struct _board_undo
     uint64_t hashkey;
 }board_undo, *pboard_undo;
 
+typedef struct _board_delta
+{
+    uint64_t hashkey;
+    uint8_t castling;
+    uint8_t enpassant;
+    uint8_t fifty_move;
+    uint8_t captured_piece;
+}board_delta;
+
 typedef struct _search_info
 {
     int start_time;

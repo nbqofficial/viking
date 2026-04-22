@@ -39,12 +39,20 @@ bool transpo::reset()
 	for (entry = this->tt; entry < (this->tt + this->entries); entry++)
 	{
 		entry->hashkey = 0ULL;
+		entry->best_move = 0;
 		entry->depth = 0;
 		entry->flag = 0;
 		entry->score = 0;
 	}
 	this->used = 0;
 	return true;
+}
+
+uint32_t transpo::probe_move(uint64_t hashkey)
+{
+	ptransposition_table entry = &this->tt[hashkey % this->entries];
+	if (entry->hashkey == hashkey) { return entry->best_move; }
+	return 0;
 }
 
 int transpo::read(uint64_t hashkey, int depth, int alpha, int beta)
@@ -70,7 +78,7 @@ int transpo::read(uint64_t hashkey, int depth, int alpha, int beta)
 	return VALUE_UNKNOWN;
 }
 
-bool transpo::write(uint64_t hashkey, int depth, uint8_t flag, int score)
+bool transpo::write(uint64_t hashkey, int depth, uint8_t flag, int score, uint32_t best_move)
 {
 	ptransposition_table entry = &this->tt[hashkey % this->entries];
 
@@ -79,6 +87,7 @@ bool transpo::write(uint64_t hashkey, int depth, uint8_t flag, int score)
 	if (entry->hashkey == 0ULL) { this->used++; }
 
 	entry->hashkey = hashkey;
+	entry->best_move = best_move;
 	entry->depth = depth;
 	entry->flag = flag;
 	entry->score = score;

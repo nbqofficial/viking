@@ -1,4 +1,5 @@
 #include "search.h"
+#include <cmath>
 
 int search::quiescence(board& b, int alpha, int beta)
 {
@@ -19,18 +20,17 @@ int search::quiescence(board& b, int alpha, int beta)
 
 	for (int i = 0; i < moves_size; ++i)
 	{
-		board_undo undo_board;
-		b.preserve_board(undo_board);
-		b.make_move(moves.m_moves[i], false);
+		board_delta delta;
+		b.make_move(moves.m_moves[i], delta);
 
 		if (moves_size > 1 && b.is_repetition())
 		{
-			b.restore_board(undo_board);
+			b.unmake_move(moves.m_moves[i], delta);
 			continue;
 		}
 
 		score = -quiescence(b, -beta, -alpha);
-		b.restore_board(undo_board);
+		b.unmake_move(moves.m_moves[i], delta);
 
 		if (uci_info.stopped) { break; }
 
@@ -48,7 +48,7 @@ int search::quiescence(board& b, int alpha, int beta)
 	return alpha;
 }
 
-int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32_t>& pv, bool null_move)
+int search::negamax(board& b, int depth, int alpha, int beta, int ply, bool null_move)
 {
 	int score = -INF_SCORE;
 
@@ -56,6 +56,8 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	int moves_searched = 0;
 	bool found_pv = false;
+
+	this->pv_length[ply] = ply;
 
 	if (depth <= 0) { return quiescence(b, alpha, beta); }
 
@@ -83,21 +85,22 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 	score = this->transpo_table.read(b.get_hashkey(), depth, alpha, beta);
 	if (score != VALUE_UNKNOWN && !pv_node)
-	{ 
+	{
 		this->transpo_cuttoff++;
-		return score; 
+		return score;
 	}
+
+	uint32_t tt_move = this->transpo_table.probe_move(b.get_hashkey());
 
 	score = -INF_SCORE;
 
 	if (null_move && !inchk && depth >= NULL_MOVE_R && b.big_piece_exist())
 	{
-		std::vector<uint32_t> cpv;
 		board_undo undo_board;
 		b.preserve_board(undo_board);
 		b.switch_side();
 		b.remove_enpassant();
-		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, cpv, false);
+		score = -negamax(b, depth - NULL_MOVE_R, -beta, -beta + 1, ply + 1, false);
 		b.restore_board(undo_board);
 
 		if (score >= beta)
@@ -119,41 +122,60 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		else { return 0; }
 	}
 
+	if (tt_move)
+	{
+		for (int i = 0; i < moves_size; ++i)
+		{
+			if (moves.m_moves[i] == tt_move)
+			{
+				if (i != 0) { std::swap(moves.m_moves[0], moves.m_moves[i]); }
+				break;
+			}
+		}
+	}
+
+	uint32_t best_move_local = 0;
+
 	for (int i = 0; i < moves_size; ++i)
 	{
-		if (depth >= NULL_MOVE_R && !n_move::get_move_score(moves.m_moves[i])) { continue; }
+		if (depth >= NULL_MOVE_R && i != 0 && !n_move::get_move_score(moves.m_moves[i])) { continue; }
 
-		std::vector<uint32_t> childpv;
-		board_undo undo_board;
-		b.preserve_board(undo_board);
-		b.make_move(moves.m_moves[i], false);
+		board_delta delta;
+		b.make_move(moves.m_moves[i], delta);
 
-		if (moves_size > 1 && b.is_repetition()) 
-		{ 
-			b.restore_board(undo_board);
-			continue; 
+		if (moves_size > 1 && b.is_repetition())
+		{
+			b.unmake_move(moves.m_moves[i], delta);
+			continue;
 		}
 
 		if (found_pv)
 		{
-			score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
-		
+			score = -negamax(b, depth - 1, -alpha - 1, -alpha, ply + 1, true);
+
 			if ((score > alpha) && (score < beta))
 			{
-				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
+				score = -negamax(b, depth - 1, -beta, -alpha, ply + 1, true);
 			}
 		}
 		else
 		{
 			if (!moves_searched)
 			{
-				score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
+				score = -negamax(b, depth - 1, -beta, -alpha, ply + 1, true);
 			}
 			else
 			{
 				if (moves_searched >= LMR_MOVE_LIMIT && depth >= LMR_DEPTH_LIMIT && !inchk && !n_move::get_move_capture_flag(moves.m_moves[i]) && !n_move::get_move_promoted_piece(moves.m_moves[i]))
 				{
-					score = -negamax(b, depth - (LMR_DEPTH_LIMIT - 1), -alpha - 1, -alpha, childpv, true);
+					int lmr_d = depth < MAX_DEPTH ? depth : MAX_DEPTH;
+					int lmr_m = moves_searched < 63 ? moves_searched : 63;
+					int R = this->lmr_table[lmr_d][lmr_m];
+					if (pv_node && R > 0) { R--; }
+					int reduced_depth = depth - 1 - R;
+					if (reduced_depth < 1) { reduced_depth = 1; }
+
+					score = -negamax(b, reduced_depth, -alpha - 1, -alpha, ply + 1, true);
 					lmr_count++;
 				}
 				else
@@ -163,17 +185,17 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 
 				if (score > alpha)
 				{
-					score = -negamax(b, depth - 1, -alpha - 1, -alpha, childpv, true);
-				
+					score = -negamax(b, depth - 1, -alpha - 1, -alpha, ply + 1, true);
+
 					if ((score > alpha) && (score < beta))
 					{
-						score = -negamax(b, depth - 1, -beta, -alpha, childpv, true);
+						score = -negamax(b, depth - 1, -beta, -alpha, ply + 1, true);
 					}
-				}			
-			}		
+				}
+			}
 		}
-		
-		b.restore_board(undo_board);
+
+		b.unmake_move(moves.m_moves[i], delta);
 
 		if (uci_info.stopped) { break; }
 
@@ -182,12 +204,13 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 		if (score > alpha)
 		{
 			hash_flag = tf_exact;
+			best_move_local = moves.m_moves[i];
 
-			if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_history_move(75, n_move::get_move_piece(moves.m_moves[i]), n_move::get_move_to(moves.m_moves[i])); }
+			if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_history_move(depth, n_move::get_move_piece(moves.m_moves[i]), n_move::get_move_to(moves.m_moves[i])); }
 
 			if (score >= beta)
 			{
-				this->transpo_table.write(b.get_hashkey(), depth, tf_beta, beta);
+				this->transpo_table.write(b.get_hashkey(), depth, tf_beta, beta, moves.m_moves[i]);
 
 				if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_killer_move(moves.m_moves[i], depth - 1); }
 
@@ -198,13 +221,16 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 			alpha = score;
 			found_pv = true;
 
-			pv.clear();
-			pv.push_back(moves.m_moves[i]);
-			std::copy(childpv.begin(), childpv.end(), std::back_inserter(pv));
+			this->pv_table[ply][ply] = moves.m_moves[i];
+			for (int next = ply + 1; next < this->pv_length[ply + 1]; ++next)
+			{
+				this->pv_table[ply][next] = this->pv_table[ply + 1][next];
+			}
+			this->pv_length[ply] = this->pv_length[ply + 1];
 		}
 	}
 
-	this->transpo_table.write(b.get_hashkey(), depth, hash_flag, alpha);
+	this->transpo_table.write(b.get_hashkey(), depth, hash_flag, alpha, best_move_local);
 
 	return alpha;
 }
@@ -212,6 +238,15 @@ int search::negamax(board& b, int depth, int alpha, int beta, std::vector<uint32
 search::search()
 {
 	if (this->transpo_table.allocate(256)) { this->transpo_table.reset(); }
+
+	for (int d = 0; d <= MAX_DEPTH; ++d)
+	{
+		for (int m = 0; m < 64; ++m)
+		{
+			if (d < 1 || m < 1) { this->lmr_table[d][m] = 0; }
+			else { this->lmr_table[d][m] = (int)(0.75 + std::log((double)d) * std::log((double)m) / 2.25); }
+		}
+	}
 }
 
 search::~search()
@@ -228,13 +263,55 @@ uint32_t search::go(board& b, int depth, bool display_info, bool display_debug)
 
 	for (int current_depth = 1; current_depth <= depth; ++current_depth)
 	{
-		b.pv_line.clear();
+		int alpha = -INF_SCORE;
+		int beta = INF_SCORE;
+		int window = 25;
+		int near_mate = MATE_SCORE - MAX_DEPTH;
 
-		best_score = negamax(b, current_depth, -INF_SCORE, INF_SCORE, b.pv_line, true);
+		if (current_depth >= 4 && std::abs(best_score) < near_mate)
+		{
+			alpha = best_score - window;
+			beta = best_score + window;
+		}
+
+		int score = 0;
+		while (true)
+		{
+			memset(this->pv_length, 0, sizeof(this->pv_length));
+
+			score = negamax(b, current_depth, alpha, beta, 0, true);
+
+			if (uci_info.stopped) { break; }
+
+			if (score <= alpha)
+			{
+				beta = (alpha + beta) / 2;
+				window *= 2;
+				alpha = (score - window > -INF_SCORE) ? score - window : -INF_SCORE;
+			}
+			else if (score >= beta)
+			{
+				window *= 2;
+				beta = (score + window < INF_SCORE) ? score + window : INF_SCORE;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		best_score = score;
 
 		if (uci_info.stopped) { break; }
 
-		best_move = b.pv_line[0];
+		b.pv_line.clear();
+		b.pv_line.reserve(this->pv_length[0]);
+		for (int i = 0; i < this->pv_length[0]; ++i)
+		{
+			b.pv_line.push_back(this->pv_table[0][i]);
+		}
+
+		if (!b.pv_line.empty()) { best_move = b.pv_line[0]; }
 
 		if (display_debug)
 		{

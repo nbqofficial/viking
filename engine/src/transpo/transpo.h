@@ -5,9 +5,10 @@
 typedef struct _transposition_table
 {
 	uint64_t hashkey;
+	uint32_t best_move;
 	int depth;
-	uint8_t flag;
 	int score;
+	uint8_t flag;
 }transposition_table, *ptransposition_table;
 
 enum transpo_flags : uint8_t
@@ -39,7 +40,9 @@ class transpo
 
 		int read(uint64_t hashkey, int depth, int alpha, int beta);
 
-		bool write(uint64_t hashkey, int depth, uint8_t flag, int score);
+		uint32_t probe_move(uint64_t hashkey);
+
+		bool write(uint64_t hashkey, int depth, uint8_t flag, int score, uint32_t best_move);
 
 		size_t get_used() const { return used; }
 

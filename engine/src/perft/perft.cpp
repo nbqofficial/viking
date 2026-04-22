@@ -13,11 +13,10 @@ void perft::node_test(board& b, uint8_t depth)
 
 	for (int i = 0; i < moves.m_size; ++i)
 	{
-		board_undo undo_board;
-		b.preserve_board(undo_board);
-		b.make_move(moves.m_moves[i], false);
+		board_delta delta;
+		b.make_move(moves.m_moves[i], delta);
 		node_test(b, depth - 1);
-		b.restore_board(undo_board);
+		b.unmake_move(moves.m_moves[i], delta);
 	}
 	return;
 }

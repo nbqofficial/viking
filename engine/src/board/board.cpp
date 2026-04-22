@@ -323,9 +323,15 @@ uint8_t board::get_piece_score(int depth, uint8_t piece, uint8_t promoted_piece,
 		}	
 		else
 		{
-			uint8_t hms = this->history_moves[side_to_piece_type[this->side][piece]][to_square];
-			if (hms > 70) { return hms; }
-			else { return this->score_possible_attack(piece, to_square); }
+			int32_t hms_raw = this->history_moves[side_to_piece_type[this->side][piece]][to_square];
+			int scaled = 0;
+			if (hms_raw > 0)
+			{
+				scaled = (int)((hms_raw * 75) / 10000);
+				if (scaled > 75) { scaled = 75; }
+			}
+			uint8_t attack = this->score_possible_attack(piece, to_square);
+			return (uint8_t)(scaled > attack ? scaled : attack);
 		}
 	}
 	return 0;
@@ -854,15 +860,14 @@ void board::generate_moves(move_list& moves, bool sort, uint8_t type, bool extra
 		for (uint8_t i = 0; i < pseudo.m_size; ++i)
 		{
 			const uint32_t move = pseudo.m_moves[i];
-			board_undo undo_board;
-			preserve_board(undo_board);
-			make_move(move, false);
+			board_delta delta;
+			make_move(move, delta);
 
 			const uint64_t kbb = this->state[side_to_piece_type[us][K]];
 			const bool safe = !this->is_square_attacked(bitwise::lsb(kbb), this->side);
 			if (safe) { moves.push(move); }
 
-			restore_board(undo_board);
+			unmake_move(move, delta);
 		}
 	}
 	else
@@ -877,8 +882,17 @@ void board::generate_moves(move_list& moves, bool sort, uint8_t type, bool extra
 	}
 }
 
-bool board::make_move(uint32_t move, bool save_to_history) noexcept
+bool board::make_move(uint32_t move, bool save_to_history, board_delta* delta) noexcept
 {
+	if (delta)
+	{
+		delta->hashkey = this->hashkey;
+		delta->castling = this->castling;
+		delta->enpassant = this->enpassant;
+		delta->fifty_move = this->fifty_move;
+		delta->captured_piece = 0;
+	}
+
 	fifty_move++;
 	if (save_to_history) { push_history(); }
 
@@ -891,19 +905,25 @@ bool board::make_move(uint32_t move, bool save_to_history) noexcept
 	uint8_t enpassant_flag = n_move::get_move_enpassant_flag(move);
 	uint8_t castling_flag = n_move::get_move_castling_flag(move);
 
+	const uint8_t us = this->side;
+	const uint8_t them = us ^ 1;
+
 	if (piece == P || piece == p) { this->fifty_move = 0; }
 
 	bitwise::clear(this->state[piece], from);
 	bitwise::set(this->state[piece], to);
 
+	bitwise::clear(this->occupied[us], from);
+	bitwise::set(this->occupied[us], to);
+
 	this->hashkey ^= state_hashkey[piece][from];
 	this->hashkey ^= state_hashkey[piece][to];
 
-	if (capture_flag)
+	if (capture_flag && !enpassant_flag)
 	{
 		this->fifty_move = 0;
-		uint8_t start_piece = side_to_piece_type[!this->side][P];
-		uint8_t end_piece = side_to_piece_type[!this->side][K];
+		uint8_t start_piece = side_to_piece_type[them][P];
+		uint8_t end_piece = side_to_piece_type[them][K];
 
 		for (uint8_t bb_piece = start_piece; bb_piece <= end_piece; ++bb_piece)
 		{
@@ -911,32 +931,38 @@ bool board::make_move(uint32_t move, bool save_to_history) noexcept
 			{
 				bitwise::clear(this->state[bb_piece], to);
 				this->hashkey ^= state_hashkey[bb_piece][to];
+				if (delta) { delta->captured_piece = bb_piece; }
 				break;
 			}
 		}
+
+		bitwise::clear(this->occupied[them], to);
 	}
 
 	if (promoted_piece)
 	{
-		bitwise::clear(this->state[side_to_piece_type[this->side][P]], to);
+		bitwise::clear(this->state[side_to_piece_type[us][P]], to);
 		bitwise::set(this->state[promoted_piece], to);
 
-		this->hashkey ^= state_hashkey[side_to_piece_type[this->side][P]][to];
+		this->hashkey ^= state_hashkey[side_to_piece_type[us][P]][to];
 		this->hashkey ^= state_hashkey[promoted_piece][to];
 	}
 
 	if (enpassant_flag)
 	{
-		if (this->side == white)
+		this->fifty_move = 0;
+		if (us == white)
 		{
 			bitwise::clear(this->state[p], to + 8);
+			bitwise::clear(this->occupied[black], to + 8);
 			this->hashkey ^= state_hashkey[p][to + 8];
 		}
 		else
 		{
 			bitwise::clear(this->state[P], to - 8);
+			bitwise::clear(this->occupied[white], to - 8);
 			this->hashkey ^= state_hashkey[P][to - 8];
-		}								
+		}
 	}
 
 	if (this->enpassant != no_sq) { this->hashkey ^= enpassant_hashkey[this->enpassant]; }
@@ -945,7 +971,7 @@ bool board::make_move(uint32_t move, bool save_to_history) noexcept
 
 	if (double_push_flag)
 	{
-		if (this->side == white)
+		if (us == white)
 		{
 			this->enpassant = to + 8;
 			this->hashkey ^= enpassant_hashkey[to + 8];
@@ -965,24 +991,32 @@ bool board::make_move(uint32_t move, bool save_to_history) noexcept
 			case g1:
 				bitwise::clear(this->state[R], h1);
 				bitwise::set(this->state[R], f1);
+				bitwise::clear(this->occupied[white], h1);
+				bitwise::set(this->occupied[white], f1);
 				this->hashkey ^= state_hashkey[R][h1];
 				this->hashkey ^= state_hashkey[R][f1];
 				break;
 			case c1:
 				bitwise::clear(this->state[R], a1);
 				bitwise::set(this->state[R], d1);
+				bitwise::clear(this->occupied[white], a1);
+				bitwise::set(this->occupied[white], d1);
 				this->hashkey ^= state_hashkey[R][a1];
 				this->hashkey ^= state_hashkey[R][d1];
 				break;
 			case g8:
 				bitwise::clear(this->state[r], h8);
 				bitwise::set(this->state[r], f8);
+				bitwise::clear(this->occupied[black], h8);
+				bitwise::set(this->occupied[black], f8);
 				this->hashkey ^= state_hashkey[r][h8];
 				this->hashkey ^= state_hashkey[r][f8];
 				break;
 			case c8:
 				bitwise::clear(this->state[r], a8);
 				bitwise::set(this->state[r], d8);
+				bitwise::clear(this->occupied[black], a8);
+				bitwise::set(this->occupied[black], d8);
 				this->hashkey ^= state_hashkey[r][a8];
 				this->hashkey ^= state_hashkey[r][d8];
 				break;
@@ -996,19 +1030,99 @@ bool board::make_move(uint32_t move, bool save_to_history) noexcept
 
 	this->hashkey ^= castling_hashkey[this->castling];
 
-	memset(this->occupied, 0ULL, sizeof(this->occupied));
-
-	for (uint8_t i = P; i <= K; ++i) { this->occupied[white] |= this->state[i]; }
-
-	for (uint8_t i = p; i <= k; ++i) { this->occupied[black] |= this->state[i]; }
-
-	this->occupied[both] |= this->occupied[white];
-	this->occupied[both] |= this->occupied[black];
+	this->occupied[both] = this->occupied[white] | this->occupied[black];
 
 	this->side ^= 1;
 	this->hashkey ^= side_hashkey;
 
 	return true;
+}
+
+void board::unmake_move(uint32_t move, const board_delta& delta) noexcept
+{
+	uint8_t from = n_move::get_move_from(move);
+	uint8_t to = n_move::get_move_to(move);
+	uint8_t piece = n_move::get_move_piece(move);
+	uint8_t promoted_piece = n_move::get_move_promoted_piece(move);
+	uint8_t capture_flag = n_move::get_move_capture_flag(move);
+	uint8_t enpassant_flag = n_move::get_move_enpassant_flag(move);
+	uint8_t castling_flag = n_move::get_move_castling_flag(move);
+
+	this->side ^= 1;
+	const uint8_t us = this->side;
+	const uint8_t them = us ^ 1;
+
+	if (promoted_piece)
+	{
+		bitwise::clear(this->state[promoted_piece], to);
+		bitwise::set(this->state[piece], from);
+	}
+	else
+	{
+		bitwise::clear(this->state[piece], to);
+		bitwise::set(this->state[piece], from);
+	}
+
+	bitwise::clear(this->occupied[us], to);
+	bitwise::set(this->occupied[us], from);
+
+	if (capture_flag && !enpassant_flag)
+	{
+		bitwise::set(this->state[delta.captured_piece], to);
+		bitwise::set(this->occupied[them], to);
+	}
+
+	if (enpassant_flag)
+	{
+		if (us == white)
+		{
+			bitwise::set(this->state[p], to + 8);
+			bitwise::set(this->occupied[black], to + 8);
+		}
+		else
+		{
+			bitwise::set(this->state[P], to - 8);
+			bitwise::set(this->occupied[white], to - 8);
+		}
+	}
+
+	if (castling_flag)
+	{
+		switch (to)
+		{
+			case g1:
+				bitwise::clear(this->state[R], f1);
+				bitwise::set(this->state[R], h1);
+				bitwise::clear(this->occupied[white], f1);
+				bitwise::set(this->occupied[white], h1);
+				break;
+			case c1:
+				bitwise::clear(this->state[R], d1);
+				bitwise::set(this->state[R], a1);
+				bitwise::clear(this->occupied[white], d1);
+				bitwise::set(this->occupied[white], a1);
+				break;
+			case g8:
+				bitwise::clear(this->state[r], f8);
+				bitwise::set(this->state[r], h8);
+				bitwise::clear(this->occupied[black], f8);
+				bitwise::set(this->occupied[black], h8);
+				break;
+			case c8:
+				bitwise::clear(this->state[r], d8);
+				bitwise::set(this->state[r], a8);
+				bitwise::clear(this->occupied[black], d8);
+				bitwise::set(this->occupied[black], a8);
+				break;
+		}
+	}
+
+	this->occupied[both] = this->occupied[white] | this->occupied[black];
+
+	this->hashkey = delta.hashkey;
+	this->castling = delta.castling;
+	this->enpassant = delta.enpassant;
+	this->fifty_move = delta.fifty_move;
 }
 
 int board::evaluate_norm() noexcept
