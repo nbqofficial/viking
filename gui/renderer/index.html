@@ -9,6 +9,14 @@
 <body>
   <div id="app">
     <div id="left">
+      <div id="board-row">
+      <div id="eval-bar" data-orient="white">
+        <div id="eval-bar-black"></div>
+        <div id="eval-bar-white"></div>
+        <div id="eval-bar-mid"></div>
+        <div id="eval-bar-label-top">0</div>
+        <div id="eval-bar-label-bot">0</div>
+      </div>
       <div id="board-wrap" style="position: relative; width: 640px; height: 640px;">
         <div id="board" style="width: 640px"></div>
         <svg id="arrow-layer" viewBox="0 0 640 640" preserveAspectRatio="none">
@@ -19,6 +27,7 @@
             </marker>
           </defs>
         </svg>
+      </div>
       </div>
       <div id="controls">
         <button id="btn-load">Load engine…</button>
@@ -60,6 +69,10 @@
       <div id="engine-header">
         <img id="logo" src="logo.png" alt="Viking" />
         <div id="engine-name">No engine loaded</div>
+        <div id="search-indicator" class="idle" title="Search status">
+          <span class="search-dot"></span>
+          <span class="search-label">idle</span>
+        </div>
         <div id="engine-eval">—</div>
       </div>
       <div id="accuracy-panel" style="display:none">
@@ -78,6 +91,7 @@
         <div>nps <span id="i-nps">—</span></div>
         <div>time <span id="i-time">—</span></div>
         <div>hashfull <span id="i-hashfull">—</span></div>
+        <div>tt entries <span id="i-tthash">—</span></div>
       </div>
       <div id="log-header">Engine log</div>
       <pre id="log"></pre>

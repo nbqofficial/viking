@@ -247,7 +247,15 @@ uint32_t search::go(board& b, int depth, bool display_info, bool display_debug)
 			printf("\trazoring cuttoffs: %lld\n", this->razoring_cuttoff);
 		}
 
-		if (display_info) { b.display_info(b.pv_line, best_score, current_depth, this->nodes); }
+		if (display_info)
+		{
+			b.display_info(b.pv_line, best_score, current_depth, this->nodes);
+			size_t tt_used = this->transpo_table.get_used();
+			size_t tt_total = this->transpo_table.get_entries();
+			int permille = tt_total ? (int)((tt_used * 1000) / tt_total) : 0;
+			printf("info depth %d hashfull %d tthash %zu tttotal %zu\n",
+			       current_depth, permille, tt_used, tt_total);
+		}
 	}
 
 	this->nodes = 0;

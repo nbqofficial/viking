@@ -14,6 +14,7 @@ bool transpo::allocate(size_t size_in_mb)
 	this->tt = (ptransposition_table)malloc(size_in_mb * 0x100000);
 	this->size_in_mb = size_in_mb;
 	this->entries = ((size_in_mb * 0x100000) / sizeof(transposition_table));
+	this->used = 0;
 	this->allocated = true;
 	return true;
 }
@@ -24,6 +25,7 @@ bool transpo::deallocate()
 	free(this->tt);
 	this->size_in_mb = 0;
 	this->entries = 0;
+	this->used = 0;
 	this->allocated = false;
 	return true;
 }
@@ -41,6 +43,7 @@ bool transpo::reset()
 		entry->flag = 0;
 		entry->score = 0;
 	}
+	this->used = 0;
 	return true;
 }
 
@@ -72,6 +75,8 @@ bool transpo::write(uint64_t hashkey, int depth, uint8_t flag, int score)
 	ptransposition_table entry = &this->tt[hashkey % this->entries];
 
 	if (!entry) { return false; }
+
+	if (entry->hashkey == 0ULL) { this->used++; }
 
 	entry->hashkey = hashkey;
 	entry->depth = depth;

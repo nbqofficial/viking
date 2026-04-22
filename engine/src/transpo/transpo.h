@@ -23,6 +23,7 @@ class transpo
 		bool allocated = false;
 		size_t size_in_mb = 0;
 		size_t entries = 0;
+		size_t used = 0;
 
 	public:
 
@@ -39,4 +40,8 @@ class transpo
 		int read(uint64_t hashkey, int depth, int alpha, int beta);
 
 		bool write(uint64_t hashkey, int depth, uint8_t flag, int score);
+
+		size_t get_used() const { return used; }
+
+		size_t get_entries() const { return entries; }
 };

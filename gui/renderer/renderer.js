@@ -26,12 +26,67 @@ const $engineName = document.getElementById('engine-name');
 const $engineEval = document.getElementById('engine-eval');
 const $pvLine = document.getElementById('pv-line');
 const $fen = document.getElementById('fen');
-const ids = ['depth', 'seldepth', 'score', 'nodes', 'nps', 'time', 'hashfull'];
+const ids = ['depth', 'seldepth', 'score', 'nodes', 'nps', 'time', 'hashfull', 'tthash'];
 const $i = Object.fromEntries(ids.map(k => [k, document.getElementById('i-' + k)]));
 
 function appendLog(line) {
   $log.textContent += line + '\n';
   $log.scrollTop = $log.scrollHeight;
+}
+
+function evalToFraction(cp) {
+  // cp is from white's POV; mate = ±10000. Map to 0..1 (white's share of bar).
+  if (cp === null || cp === undefined) return 0.5;
+  if (cp >= 10000) return 1;
+  if (cp <= -10000) return 0;
+  const c = Math.max(-1000, Math.min(1000, cp));
+  return 1 / (1 + Math.exp(-0.004 * c));
+}
+
+function formatEvalLabel(cp) {
+  if (cp === null || cp === undefined) return '0.0';
+  if (cp >= 10000) return 'M';
+  if (cp <= -10000) return '-M';
+  const p = cp / 100;
+  return (p >= 0 ? '+' : '') + p.toFixed(1);
+}
+
+function updateEvalBar(cp) {
+  const bar = document.getElementById('eval-bar');
+  if (!bar) return;
+  const frac = evalToFraction(cp);
+  const H = bar.clientHeight || 640;
+  const whitePx = Math.round(frac * H);
+  const blackPx = H - whitePx;
+  const orient = bar.dataset.orient;
+  const blackEl = document.getElementById('eval-bar-black');
+  const whiteEl = document.getElementById('eval-bar-white');
+  const mid = document.getElementById('eval-bar-mid');
+  const topLbl = document.getElementById('eval-bar-label-top');
+  const botLbl = document.getElementById('eval-bar-label-bot');
+  whiteEl.style.height = whitePx + 'px';
+  blackEl.style.height = blackPx + 'px';
+  // mid line sits at the boundary between white and black
+  mid.style.bottom = (orient === 'black' ? (H - whitePx - 1) : (whitePx - 1)) + 'px';
+  const label = formatEvalLabel(cp);
+  // label shown on the losing side (the smaller portion), like lichess
+  if (frac >= 0.5) {
+    // white is winning — label at bottom (white side when orient=white)
+    if (orient === 'white') { botLbl.textContent = label; topLbl.textContent = ''; }
+    else                    { topLbl.textContent = label; botLbl.textContent = ''; }
+  } else {
+    if (orient === 'white') { topLbl.textContent = label; botLbl.textContent = ''; }
+    else                    { botLbl.textContent = label; topLbl.textContent = ''; }
+  }
+}
+
+function setThinking(v) {
+  thinking = v;
+  const el = document.getElementById('search-indicator');
+  if (!el) return;
+  el.classList.toggle('searching', !!v);
+  el.classList.toggle('idle', !v);
+  el.querySelector('.search-label').textContent = v ? 'searching' : 'idle';
 }
 
 function updateStatus() {
@@ -171,6 +226,7 @@ board = Chessboard('board', {
 updateStatus();
 drawEvalChart();
 renderMovesList();
+updateEvalBar(null);
 
 // ---- UCI parsing ----
 function parseInfo(line) {
@@ -180,6 +236,8 @@ function parseInfo(line) {
     const tok = parts[i];
     if (tok === 'depth' || tok === 'seldepth' || tok === 'nodes' || tok === 'nps' ||
         tok === 'time' || tok === 'hashfull' || tok === 'multipv') {
+      info[tok] = parts[++i];
+    } else if (tok === 'tthash' || tok === 'tttotal') {
       info[tok] = parts[++i];
     } else if (tok === 'score') {
       const kind = parts[++i]; const val = parts[++i];
@@ -249,6 +307,7 @@ function resetEvalHistory() {
   lastCp = null;
   evalHistory = [];
   drawEvalChart();
+  updateEvalBar(null);
 }
 
 function recordEvalForLastMove() {
@@ -259,6 +318,13 @@ function recordEvalForLastMove() {
 
 function applyInfo(info) {
   for (const k of ids) if (info[k] !== undefined) $i[k].textContent = info[k];
+  if (info.tthash !== undefined) {
+    const used = Number(info.tthash);
+    const total = info.tttotal !== undefined ? Number(info.tttotal) : null;
+    $i.tthash.textContent = total
+      ? `${used.toLocaleString()} / ${total.toLocaleString()}`
+      : used.toLocaleString();
+  }
   if (info.nodes !== undefined && searchStartMs) {
     const elapsed = Math.max(1, Date.now() - searchStartMs);
     if (info.time === undefined) $i.time.textContent = elapsed;
@@ -273,6 +339,7 @@ function applyInfo(info) {
     else cp = info.scoreRaw.val;
     if (game.turn() === 'b') cp = -cp;
     lastCp = cp;
+    updateEvalBar(cp);
   }
   if (info.score !== undefined) {
     let disp = info.score;
@@ -306,7 +373,7 @@ function handleEngineLine(line) {
   else if (line === 'readyok') { /* noop */ }
   else if (line.startsWith('info ') && line.includes(' depth ')) applyInfo(parseInfo(line));
   else if (line.startsWith('bestmove ')) {
-    thinking = false;
+    setThinking(false);
     const uci = line.split(/\s+/)[1];
     lastBestmove = uci;
     // keep the arrow visible, anchored to the engine's final choice
@@ -330,7 +397,7 @@ function handleEngineLine(line) {
       } else {
         clearEngineArrow();
         sendCmd(positionCmd());
-        thinking = true;
+        setThinking(true);
         sendCmd(buildGoCmd());
         return;
       }
@@ -341,7 +408,7 @@ function handleEngineLine(line) {
       const cmd = pendingGo; pendingGo = null;
       clearEngineArrow();
       sendCmd(positionCmd());
-      thinking = true;
+      setThinking(true);
       searchStartMs = Date.now();
       sendCmd(cmd);
     } else if (pendingRestart) {
@@ -448,7 +515,7 @@ function runSearch(goCmd) {
     lastCp = null;
     clearEngineArrow();
     sendCmd(positionCmd());
-    thinking = true;
+    setThinking(true);
     searchStartMs = Date.now();
     sendCmd(goCmd);
   });
@@ -632,7 +699,7 @@ function goClicked() {
   }
   clearEngineArrow();
   sendCmd(positionCmd());
-  thinking = true;
+  setThinking(true);
   searchStartMs = Date.now();
   sendCmd(buildGoCmd());
 }
@@ -651,7 +718,7 @@ function startInfiniteAnalysis() {
   if (!engineLoaded || game.game_over()) return;
   clearEngineArrow();
   sendCmd(positionCmd());
-  thinking = true;
+  setThinking(true);
   searchStartMs = Date.now();
   sendCmd('go infinite');
 }
@@ -720,7 +787,12 @@ document.getElementById('btn-undo').onclick = () => {
     board.position(game.fen()); highlightMove(null, null); clearEngineArrow(); updateStatus(); restartAnalysisIfOn();
   }
 };
-document.getElementById('btn-flip').onclick = () => { board.flip(); if (currentPvMove) drawEngineArrow(currentPvMove); };
+document.getElementById('btn-flip').onclick = () => {
+  board.flip();
+  document.getElementById('eval-bar').dataset.orient = board.orientation() === 'black' ? 'black' : 'white';
+  updateEvalBar(lastCp);
+  if (currentPvMove) drawEngineArrow(currentPvMove);
+};
 
 document.getElementById('btn-pgn').onclick = () => document.getElementById('pgn-file').click();
 
@@ -803,7 +875,7 @@ document.getElementById('btn-selfplay').onclick = () => {
   } else {
     clearEngineArrow();
     sendCmd(positionCmd());
-    thinking = true;
+    setThinking(true);
     sendCmd(buildGoCmd());
   }
 };
