@@ -3,11 +3,62 @@
 uci::uci()
 {
 	console_handle = GetStdHandle(STD_INPUT_HANDLE);
+	this->tt.allocate(this->hash_mb);
+	this->tt.reset();
+	this->resize_workers();
 }
 
 uci::~uci()
 {
+	this->workers.clear();
+	this->tt.deallocate();
 	CloseHandle(console_handle);
+}
+
+void uci::resize_workers()
+{
+	this->workers.clear();
+	this->workers.reserve(this->threads);
+	for (int i = 0; i < this->threads; ++i)
+	{
+		auto w = std::make_unique<search>();
+		w->attach_tt(&this->tt);
+		w->set_thread_id(i);
+		this->workers.push_back(std::move(w));
+	}
+}
+
+uint32_t uci::run_search(int depth, bool display_info, bool display_debug)
+{
+	if (this->workers.empty()) { this->resize_workers(); }
+
+	// Give every thread an isolated board copy so killers/history/pv are per-thread.
+	std::vector<board> boards;
+	boards.reserve(this->threads);
+	for (int i = 0; i < this->threads; ++i) { boards.push_back(this->b); }
+
+	std::vector<std::thread> helpers;
+	helpers.reserve(this->threads - 1);
+
+	// Launch helper threads first. They run silently and share the TT.
+	for (int i = 1; i < this->threads; ++i)
+	{
+		search* s = this->workers[i].get();
+		board* bp = &boards[i];
+		helpers.emplace_back([s, bp, depth]() {
+			s->go(*bp, depth, false, false);
+		});
+	}
+
+	// Main thread drives time control and UCI output.
+	uint32_t best_move = this->workers[0]->go(boards[0], depth, display_info, display_debug);
+
+	// Signal helpers to stop and wait for them.
+	uci_info.stopped = true;
+	for (auto& t : helpers) { if (t.joinable()) { t.join(); } }
+	helper::clear_searchinfo();
+
+	return best_move;
 }
 
 void uci::go(char* line_in)
@@ -80,7 +131,7 @@ void uci::go(char* line_in)
 		uci_info.depth = MAX_DEPTH;
 	}
 
-	uint32_t best_move = this->sc.go(this->b, uci_info.depth, true, this->debug);
+	uint32_t best_move = this->run_search(uci_info.depth, true, this->debug);
 	std::string move_str = this->b.move_to_string(best_move);
 	this->b.make_move(best_move, true);
 
@@ -225,7 +276,7 @@ void uci::parse_testpos(char* line_in)
 		uci_info.timeset = true;
 		uci_info.stop_time = uci_info.start_time + movetime;
 
-		uint32_t best_move = this->sc.go(this->b, uci_info.depth, false, this->debug);
+		uint32_t best_move = this->run_search(uci_info.depth, false, this->debug);
 		std::string move_str = this->b.move_to_string(best_move);
 
 		total += 1.0;
@@ -242,6 +293,45 @@ void uci::parse_testpos(char* line_in)
 	}
 }
 
+void uci::parse_setoption(char* line_in)
+{
+	// setoption name <Name> value <Value>
+	char* name_ptr = strstr(line_in, "name");
+	char* value_ptr = strstr(line_in, "value");
+	if (!name_ptr || !value_ptr) { return; }
+
+	name_ptr += 5;
+	char name[64] = { 0 };
+	int n = 0;
+	while (name_ptr < value_ptr && *name_ptr && *name_ptr != ' ' && n < 63)
+	{
+		name[n++] = *name_ptr++;
+	}
+	name[n] = 0;
+
+	value_ptr += 6;
+	int value = atoi(value_ptr);
+
+	if (!_stricmp(name, "Threads"))
+	{
+		if (value < 1) { value = 1; }
+		if (value > 256) { value = 256; }
+		this->threads = value;
+		this->resize_workers();
+		printf("info string Threads set to %d\n", this->threads);
+	}
+	else if (!_stricmp(name, "Hash"))
+	{
+		if (value < 1) { value = 1; }
+		this->hash_mb = (size_t)value;
+		this->tt.deallocate();
+		this->tt.allocate(this->hash_mb);
+		this->tt.reset();
+		// Workers hold pointers to the same tt object, which is still valid.
+		printf("info string Hash set to %zu MB\n", this->hash_mb);
+	}
+}
+
 void uci::uci_loop()
 {
 	setvbuf(stdin, NULL, _IONBF, BUFSIZ);
@@ -251,6 +341,8 @@ void uci::uci_loop()
 
 	printf("id name %s\n", ENGINE_NAME);
 	printf("id author %s\n", ENGINE_AUTHOR);
+	printf("option name Threads type spin default 1 min 1 max 256\n");
+	printf("option name Hash type spin default 256 min 1 max 65536\n");
 	printf("uciok\n");
 
 	while (1)
@@ -273,6 +365,7 @@ void uci::uci_loop()
 		}
 		else if (!strncmp(line, "ucinewgame", 10))
 		{
+			this->tt.reset();
 			position((char*)"position startpos\n");
 		}
 		else if (!strncmp(line, "go", 2))
@@ -284,10 +377,16 @@ void uci::uci_loop()
 			exit(EXIT_SUCCESS);
 			break;
 		}
+		else if (!strncmp(line, "setoption", 9))
+		{
+			parse_setoption(line);
+		}
 		else if (!strncmp(line, "uci", 3))
 		{
 			printf("id name %s\n", ENGINE_NAME);
 			printf("id author %s\n", ENGINE_AUTHOR);
+			printf("option name Threads type spin default 1 min 1 max 256\n");
+			printf("option name Hash type spin default 256 min 1 max 65536\n");
 			printf("uciok\n");
 		}
 		else if (!strncmp(line, "perft", 5))

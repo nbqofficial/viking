@@ -3,7 +3,7 @@
 
 int search::quiescence(board& b, int alpha, int beta)
 {
-	if ((this->nodes & 2047) == 0) { helper::check_up(); }
+	if (this->is_main() && (this->nodes & 2047) == 0) { helper::check_up(); }
 
 	this->nodes++;
 
@@ -36,11 +36,11 @@ int search::quiescence(board& b, int alpha, int beta)
 
 		if (score > alpha)
 		{
-			if (score >= beta) 
-			{ 
+			if (score >= beta)
+			{
 				if (i == 0) { this->fhf++; }
 				this->fh++;
-				return beta; 
+				return beta;
 			}
 			alpha = score;
 		}
@@ -61,7 +61,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, int ply, bool null
 
 	if (depth <= 0) { return quiescence(b, alpha, beta); }
 
-	if ((this->nodes & 2047) == 0) { helper::check_up(); }
+	if (this->is_main() && (this->nodes & 2047) == 0) { helper::check_up(); }
 
 	this->nodes++;
 
@@ -69,28 +69,28 @@ int search::negamax(board& b, int depth, int alpha, int beta, int ply, bool null
 
 	bool inchk = b.is_in_check();
 	if (inchk) { depth++; }
-	
+
 #ifdef _USE_NNUE
 	if (!pv_node && !inchk && depth == 1)
 	{
 		int stand_pat = b.evaluate();
 		const int RAZOR_MARGIN = 150;
 		if (stand_pat + RAZOR_MARGIN <= alpha)
-		{ 
+		{
 			this->razoring_cuttoff++;
-			return quiescence(b, alpha, beta); 
+			return quiescence(b, alpha, beta);
 		}
 	}
 #endif
 
-	score = this->transpo_table.read(b.get_hashkey(), depth, alpha, beta);
+	score = this->tt->read(b.get_hashkey(), depth, alpha, beta);
 	if (score != VALUE_UNKNOWN && !pv_node)
 	{
 		this->transpo_cuttoff++;
 		return score;
 	}
 
-	uint32_t tt_move = this->transpo_table.probe_move(b.get_hashkey());
+	uint32_t tt_move = this->tt->probe_move(b.get_hashkey());
 
 	score = -INF_SCORE;
 
@@ -138,7 +138,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, int ply, bool null
 
 	for (int i = 0; i < moves_size; ++i)
 	{
-		if (depth >= NULL_MOVE_R && i != 0 && !n_move::get_move_score(moves.m_moves[i])) { continue; }
+		if (ply > 0 && depth >= NULL_MOVE_R && moves_searched >= 4 && !n_move::get_move_score(moves.m_moves[i])) { continue; }
 
 		board_delta delta;
 		b.make_move(moves.m_moves[i], delta);
@@ -210,7 +210,7 @@ int search::negamax(board& b, int depth, int alpha, int beta, int ply, bool null
 
 			if (score >= beta)
 			{
-				this->transpo_table.write(b.get_hashkey(), depth, tf_beta, beta, moves.m_moves[i]);
+				this->tt->write(b.get_hashkey(), depth, tf_beta, beta, moves.m_moves[i]);
 
 				if (!n_move::get_move_capture_flag(moves.m_moves[i])) { b.add_killer_move(moves.m_moves[i], depth - 1); }
 
@@ -230,15 +230,13 @@ int search::negamax(board& b, int depth, int alpha, int beta, int ply, bool null
 		}
 	}
 
-	this->transpo_table.write(b.get_hashkey(), depth, hash_flag, alpha, best_move_local);
+	this->tt->write(b.get_hashkey(), depth, hash_flag, alpha, best_move_local);
 
 	return alpha;
 }
 
 search::search()
 {
-	if (this->transpo_table.allocate(256)) { this->transpo_table.reset(); }
-
 	for (int d = 0; d <= MAX_DEPTH; ++d)
 	{
 		for (int m = 0; m < 64; ++m)
@@ -251,7 +249,6 @@ search::search()
 
 search::~search()
 {
-	this->transpo_table.deallocate();
 }
 
 uint32_t search::go(board& b, int depth, bool display_info, bool display_debug)
@@ -327,8 +324,8 @@ uint32_t search::go(board& b, int depth, bool display_info, bool display_debug)
 		if (display_info)
 		{
 			b.display_info(b.pv_line, best_score, current_depth, this->nodes);
-			size_t tt_used = this->transpo_table.get_used();
-			size_t tt_total = this->transpo_table.get_entries();
+			size_t tt_used = this->tt->get_used();
+			size_t tt_total = this->tt->get_entries();
 			int permille = tt_total ? (int)((tt_used * 1000) / tt_total) : 0;
 			printf("info depth %d hashfull %d tthash %zu tttotal %zu\n",
 			       current_depth, permille, tt_used, tt_total);
@@ -343,6 +340,5 @@ uint32_t search::go(board& b, int depth, bool display_info, bool display_debug)
 	this->transpo_cuttoff = 0;
 	this->razoring_cuttoff = 0;
 
-	helper::clear_searchinfo();
 	return best_move;
 }

@@ -8,7 +8,7 @@
 </head>
 <body>
   <div id="app">
-    <div id="left">
+    <div id="left" class="panel">
       <div id="board-row">
       <div id="eval-bar" data-orient="white">
         <div id="eval-bar-black"></div>
@@ -17,9 +17,9 @@
         <div id="eval-bar-label-top">0</div>
         <div id="eval-bar-label-bot">0</div>
       </div>
-      <div id="board-wrap" style="position: relative; width: 640px; height: 640px;">
-        <div id="board" style="width: 640px"></div>
-        <svg id="arrow-layer" viewBox="0 0 640 640" preserveAspectRatio="none">
+      <div id="board-wrap" style="position: relative;">
+        <div id="board"></div>
+        <svg id="arrow-layer" viewBox="0 0 640 640" preserveAspectRatio="none"
           <defs>
             <marker id="arrowhead" viewBox="0 0 10 10" refX="7" refY="5"
                     markerWidth="4" markerHeight="4" orient="auto">
@@ -53,6 +53,12 @@
         <label>depth
           <input id="depth" type="number" value="" min="1" max="64" />
         </label>
+        <label>threads
+          <input id="threads" type="number" value="1" min="1" max="256" step="1" />
+        </label>
+        <label>hash (MB)
+          <input id="hash" type="number" value="256" min="1" max="65536" step="1" />
+        </label>
         <label><input id="auto" type="checkbox" /> engine plays opponent</label>
         <label><input id="analyze" type="checkbox" /> analyze continuously</label>
       </div>
@@ -65,7 +71,9 @@
       </div>
     </div>
 
-    <div id="right">
+    <div id="splitter-v" class="splitter-v" title="Drag to resize"></div>
+
+    <div id="right" class="panel">
       <div id="engine-header">
         <img id="logo" src="logo.png" alt="Viking" />
         <div id="engine-name">No engine loaded</div>
@@ -93,7 +101,11 @@
         <div>hashfull <span id="i-hashfull">—</span></div>
         <div>tt entries <span id="i-tthash">—</span></div>
       </div>
-      <div id="log-header">Engine log</div>
+      <div id="splitter-h" class="splitter-h" title="Drag to resize"></div>
+      <div id="log-header">
+        Engine log
+        <button id="btn-clear-log" class="mini-btn" title="Clear log">Clear</button>
+      </div>
       <pre id="log"></pre>
       <div id="send-row">
         <input id="send-input" type="text" placeholder="Send raw UCI command…" />

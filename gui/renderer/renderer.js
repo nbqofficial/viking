@@ -99,6 +99,24 @@ function updateStatus() {
   else s = (game.turn() === 'w' ? 'White' : 'Black') + ' to move' + (game.in_check() ? ' (check)' : '');
   $status.textContent = s;
   $fen.value = game.fen();
+  highlightCheck();
+}
+
+function highlightCheck() {
+  $('#board .square-55d63').removeClass('check-highlight');
+  if (!game.in_check() && !game.in_checkmate()) return;
+  const turn = game.turn();
+  const rows = game.board();
+  for (let r = 0; r < 8; ++r) {
+    for (let f = 0; f < 8; ++f) {
+      const p = rows[r][f];
+      if (p && p.type === 'k' && p.color === turn) {
+        const sq = 'abcdefgh'[f] + (8 - r);
+        $('#board .square-' + sq).addClass('check-highlight');
+        return;
+      }
+    }
+  }
 }
 
 function highlightMove(from, to) {
@@ -750,6 +768,13 @@ window.viking.onExit((code) => {
   $engineName.textContent = 'No engine loaded';
 });
 
+function sendEngineOptions() {
+  const t = parseInt(document.getElementById('threads').value, 10);
+  const h = parseInt(document.getElementById('hash').value, 10);
+  if (Number.isFinite(t) && t >= 1) sendCmd('setoption name Threads value ' + t);
+  if (Number.isFinite(h) && h >= 1) sendCmd('setoption name Hash value ' + h);
+}
+
 document.getElementById('btn-load').onclick = async () => {
   const p = await window.viking.pickEngine();
   if (!p) return;
@@ -758,7 +783,19 @@ document.getElementById('btn-load').onclick = async () => {
   engineLoaded = true;
   appendLog('[loaded] ' + p);
   sendCmd('uci');
+  sendEngineOptions();
 };
+
+document.getElementById('threads').addEventListener('change', () => {
+  if (!engineLoaded) return;
+  const t = parseInt(document.getElementById('threads').value, 10);
+  if (Number.isFinite(t) && t >= 1) sendCmd('setoption name Threads value ' + t);
+});
+document.getElementById('hash').addEventListener('change', () => {
+  if (!engineLoaded) return;
+  const h = parseInt(document.getElementById('hash').value, 10);
+  if (Number.isFinite(h) && h >= 1) sendCmd('setoption name Hash value ' + h);
+});
 
 document.getElementById('btn-new').onclick = () => {
   if (selfPlay) {
@@ -928,3 +965,94 @@ $sendInput.addEventListener('keydown', (e) => {
   if (!c) return;
   sendCmd(c); $sendInput.value = '';
 });
+
+// ---- Clear log ----
+document.getElementById('btn-clear-log').onclick = () => {
+  $log.textContent = '';
+};
+
+// ---- Board auto-fit ----
+function layoutBoard() {
+  const row = document.getElementById('board-row');
+  const evalBar = document.getElementById('eval-bar');
+  const wrap = document.getElementById('board-wrap');
+  if (!wrap || !row) return;
+  const gap = 10;
+  const availW = Math.max(0, row.clientWidth - evalBar.offsetWidth - gap);
+  const availH = row.clientHeight;
+  const size = Math.max(120, Math.floor(Math.min(availW, availH)));
+  wrap.style.width = size + 'px';
+  wrap.style.height = size + 'px';
+  evalBar.style.height = size + 'px';
+  if (board && typeof board.resize === 'function') board.resize();
+}
+
+window.addEventListener('resize', layoutBoard);
+new ResizeObserver(() => layoutBoard()).observe(document.getElementById('left'));
+requestAnimationFrame(layoutBoard);
+
+// ---- Resizable splitters (persist in localStorage) ----
+(function setupSplitters() {
+  const LS_LEFT_W = 'viking.leftWidth';
+  const LS_LOG_H = 'viking.logHeight';
+  const leftEl = document.getElementById('left');
+  const logEl = document.getElementById('log');
+  const splitterV = document.getElementById('splitter-v');
+  const splitterH = document.getElementById('splitter-h');
+
+  // Restore saved sizes.
+  const savedLeft = parseInt(localStorage.getItem(LS_LEFT_W), 10);
+  if (Number.isFinite(savedLeft) && savedLeft >= 300) {
+    leftEl.style.flex = '0 0 ' + savedLeft + 'px';
+  }
+  const savedLogH = parseInt(localStorage.getItem(LS_LOG_H), 10);
+  if (Number.isFinite(savedLogH) && savedLogH >= 60) {
+    logEl.style.flex = '0 0 auto';
+    logEl.style.height = savedLogH + 'px';
+  }
+
+  // Vertical splitter: drag to resize the left (board) column.
+  splitterV.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = leftEl.getBoundingClientRect().width;
+    splitterV.classList.add('dragging');
+    document.body.classList.add('resizing');
+    const onMove = (ev) => {
+      const w = Math.max(300, Math.min(window.innerWidth - 250, startW + (ev.clientX - startX)));
+      leftEl.style.flex = '0 0 ' + w + 'px';
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      splitterV.classList.remove('dragging');
+      document.body.classList.remove('resizing');
+      localStorage.setItem(LS_LEFT_W, leftEl.getBoundingClientRect().width | 0);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  // Horizontal splitter: drag to resize the engine log (grows when dragged up).
+  splitterH.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = logEl.getBoundingClientRect().height;
+    logEl.style.flex = '0 0 auto';
+    splitterH.classList.add('dragging');
+    document.body.classList.add('resizing-v');
+    const onMove = (ev) => {
+      const h = Math.max(60, Math.min(window.innerHeight - 200, startH + (startY - ev.clientY)));
+      logEl.style.height = h + 'px';
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      splitterH.classList.remove('dragging');
+      document.body.classList.remove('resizing-v');
+      localStorage.setItem(LS_LOG_H, parseInt(logEl.style.height, 10));
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();

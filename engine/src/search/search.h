@@ -13,7 +13,9 @@ class search
 			long long lmr_count = 0;
 			long long transpo_cuttoff = 0;
 			long long razoring_cuttoff = 0;
-			transpo transpo_table;
+
+			transpo* tt = nullptr;
+			int thread_id = 0;
 
 			uint32_t pv_table[MAX_DEPTH + 1][MAX_DEPTH + 1];
 			int pv_length[MAX_DEPTH + 1];
@@ -28,6 +30,12 @@ class search
 		search();
 
 		~search();
+
+		void attach_tt(transpo* t) { this->tt = t; }
+
+		void set_thread_id(int id) { this->thread_id = id; }
+
+		bool is_main() const { return this->thread_id == 0; }
 
 		uint32_t go(board& b, int depth, bool display_info, bool display_debug);
 };
